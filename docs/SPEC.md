@@ -189,7 +189,7 @@ The folders are fixed: `Meetings/`, `Meetings/Transcripts/`, `Meetings/_Template
 
 ## Menu bar
 
-- **Idle**: Start meeting (shortcut) · Template ▸ (hidden when the Summary Profile is *Transcript*) · Summary Profile ▸ (*Transcript* or a Profile) · Recent meetings ▸ (Open note · Retry, then Show all in Obsidian…) · "Takku x.y.z is available…" when there is one · Settings… · Quit
+- **Idle**: Start meeting (shortcut) · Template ▸ (hidden when the Summary Profile is *Transcript*) · Summary Profile ▸ (*Transcript* or a Profile) · Recent meetings ▸ (Open note · Retry, then Show all in Obsidian…) · "Takku x.y.z is available…" when there is one · Set up Takku… (only without a Vault) · Report a problem… · Settings… · Quit
 - **Recording**: only a red dot in the bar (a star for a second after a Mark); in the menu "Recording · duration" · the silent Track warnings · Stop · Mark this moment (⌃⌥⌘M) · "Marked moments: N" · Template ▸ · Settings…
 - **Processing**: hourglass in the bar; in the menu "Processing… (N more queued)"
 
@@ -309,6 +309,7 @@ When the Summary cannot tell who a Speaker is, the user can say it:
 ### Smaller changes
 
 - **Update check**: Settings → *General* → *Check for updates* (on by default). At launch and once a day Takku asks GitHub for the latest release (`api.github.com/repos/mameli/Takku/releases/latest`, no data about the user or the Meetings, only the request). If its version (`v0.1.6` → `0.1.6`) is newer than the running one, the menu shows "Takku 0.1.6 is available…", which opens the release page. The README lists this request in "Where your data is".
+- **Welcome window**: at launch while no Vault is chosen (in practice the first launch; Steno's migrated settings include the Vault), and from *Set up Takku…* in the menu until then. Steps: Vault (`Vault.choose()`, shared with Settings) · microphone and system audio (the microphone through AVFoundation; the system audio has no request API, so a process tap runs for a second to make macOS ask, and whether it was allowed cannot be read) · transcription model (downloads and prepares the selected model, as the first Meeting would) · Summary (optional: opens Settings, links to the setup page) · Open at login and Calendar. *Done* closes it; nothing is saved besides the settings themselves.
 - **Report a problem…** (menu, above *Settings…*): writes `Takku report <date>.txt` in the temporary folder (Desktop and Downloads would need a permission of their own) and shows it in Finder, then opens `github.com/mameli/Takku/issues/new` with the bug form's fields filled in through the query (`ProblemReport`). The file has the version and build, macOS, Mac model and memory, the install method (Homebrew if its Caskroom has Takku), the transcription model, the Summary as model plus *on this Mac* or *remote* (never the Profile's name or address, which can name a company) and `log show --last 3d` for the `app.takku.takku` subsystem. Nothing is sent by Takku.
 - **Recent meetings → Show all in Obsidian…**: opens Obsidian's search on the Vault with the Meeting notes (`([takku_id] OR [steno_id]) -path:"Meetings/Transcripts"`, `steno_id` for notes written before the rename).
 - **CI**: GitHub Actions runs `swift test` on `TakkuCore` and builds the app (signed ad hoc) at every push and pull request.

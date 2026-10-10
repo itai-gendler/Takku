@@ -1616,6 +1616,216 @@
           }
         }
       }
+    },
+    "Welcome to Takku": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ti diamo il benvenuto in Takku"
+          }
+        }
+      }
+    },
+    "Takku records your meetings, transcribes them on this Mac and writes the notes into Obsidian. A few steps before the first one:": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takku registra le tue riunioni, le trascrive su questo Mac e scrive le note in Obsidian. Qualche passo prima della prima:"
+          }
+        }
+      }
+    },
+    "Obsidian vault": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vault Obsidian"
+          }
+        }
+      }
+    },
+    "One note per meeting goes into its Meetings folder. Any folder works.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una nota per riunione, nella sua cartella Meetings. Va bene qualsiasi cartella."
+          }
+        }
+      }
+    },
+    "Microphone and system audio": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microfono e audio di sistema"
+          }
+        }
+      }
+    },
+    "Takku records your voice and the call. macOS asks once for each: choose Allow.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takku registra la tua voce e la chiamata. macOS chiede una volta per ciascuna: scegli Consenti."
+          }
+        }
+      }
+    },
+    "Allow microphone and system audio": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consenti microfono e audio di sistema"
+          }
+        }
+      }
+    },
+    "The microphone is not allowed.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il microfono non è consentito."
+          }
+        }
+      }
+    },
+    "Open System Settings": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri Impostazioni di Sistema"
+          }
+        }
+      }
+    },
+    "If you chose Don't Allow for the system audio, turn Takku on in Screen & System Audio Recording.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se per l'audio di sistema hai scelto Non consentire, attiva Takku in Registrazione schermo e audio di sistema."
+          }
+        }
+      }
+    },
+    "Transcription model": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modello di trascrizione"
+          }
+        }
+      }
+    },
+    "%@, %lld MB, downloaded once and prepared for this Mac. It takes a few minutes: you can go on meanwhile.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$lld MB, scaricato una volta e preparato per questo Mac. Ci vogliono alcuni minuti: intanto puoi andare avanti."
+          }
+        }
+      }
+    },
+    "Download and prepare": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scarica e prepara"
+          }
+        }
+      }
+    },
+    "Summary (optional)": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Riepilogo (facoltativo)"
+          }
+        }
+      }
+    },
+    "Until you add a Summary Profile, Takku writes only the Transcript. A Profile is a model on this Mac (llama.cpp, Ollama, LM Studio) or an OpenAI-compatible provider you trust.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finché non aggiungi un Profilo per il Riepilogo, Takku scrive solo la Trascrizione. Un Profilo è un modello su questo Mac (llama.cpp, Ollama, LM Studio) o un provider compatibile OpenAI di cui ti fidi."
+          }
+        }
+      }
+    },
+    "Add a Profile in Settings…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi un Profilo nelle Impostazioni…"
+          }
+        }
+      }
+    },
+    "Examples": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esempi"
+          }
+        }
+      }
+    },
+    "Optional": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Facoltativo"
+          }
+        }
+      }
+    },
+    "Takku lives in the menu bar: start a meeting from there or with ⌃⌥⌘R.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takku sta nella barra dei menu: avvia una riunione da lì o con ⌃⌥⌘R."
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fine"
+          }
+        }
+      }
+    },
+    "Set up Takku…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configura Takku…"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -90,15 +90,7 @@ struct SettingsView: View {
     }
 
     private func chooseVault() {
-        let panel = NSOpenPanel()
-        panel.canChooseDirectories = true
-        panel.canChooseFiles = false
-        panel.allowsMultipleSelection = false
-        panel.prompt = String(localized: "Use this Vault")
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-        vaultPath = url.path(percentEncoded: false)
-        AppSettings.vaultPath = vaultPath
-        try? Vault.configured?.ensureDefaultTemplate()
+        if let path = Vault.choose() { vaultPath = path }
     }
 
     private func addProfile() {

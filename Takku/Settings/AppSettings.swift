@@ -3,7 +3,8 @@ import TakkuCore
 
 /// Takku's settings, editable in the Settings window.
 enum AppSettings {
-    private static let vaultPathKey = "vaultPath"
+    /// Also used by `@AppStorage` in the menu and in the welcome window.
+    static let vaultPathKey = "vaultPath"
     /// v1's single language (`it`, `en`, `auto`), read only to migrate it to `meetingLanguagesKey`.
     private static let languageKey = "language"
     private static let meetingLanguagesKey = "meetingLanguages"

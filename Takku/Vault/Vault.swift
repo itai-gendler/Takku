@@ -13,6 +13,22 @@ struct Vault {
         AppSettings.vaultPath.map { Vault(root: URL(filePath: $0, directoryHint: .isDirectory)) }
     }
 
+    /// Asks for the Vault folder (Settings, welcome window), saves it and adds the default
+    /// Template. The chosen path, or `nil` if the user cancelled.
+    @MainActor
+    static func choose() -> String? {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.allowsMultipleSelection = false
+        panel.prompt = String(localized: "Use this Vault")
+        guard panel.runModal() == .OK, let url = panel.url else { return nil }
+        let path = url.path(percentEncoded: false)
+        AppSettings.vaultPath = path
+        try? configured?.ensureDefaultTemplate()
+        return path
+    }
+
     // MARK: - Templates
 
     /// The available Templates, by file name (without `.md`), in alphabetical order.

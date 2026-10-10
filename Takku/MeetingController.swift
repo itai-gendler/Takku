@@ -47,6 +47,8 @@ final class MeetingController {
     /// The latest phase, also while a menu is open (the observed title waits for it to close).
     @ObservationIgnored private var modelPhase = ModelMenuPhase.notLoaded
     @ObservationIgnored private var latestModelMenuTitle: String?
+    /// The transcription model is in memory, ready for the next Meeting (the welcome window shows it).
+    private(set) var isModelReady = false
     private(set) var microphoneDenied = false
     private(set) var recordingError: String?
     private(set) var lastRecordingDirectory: URL?
@@ -370,6 +372,12 @@ final class MeetingController {
     }
     #endif
 
+    /// From the welcome window: downloads and prepares the model before the first Meeting, which
+    /// would otherwise wait for it. The menu shows the progress as during a Meeting.
+    func prepareTranscriptionModel() async throws {
+        try await transcriber.prepare(.selected)
+    }
+
     func openMicrophoneSettings() {
         let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")!
         NSWorkspace.shared.open(url)
@@ -437,6 +445,9 @@ final class MeetingController {
             }
         }
         modelPhase = phase
+        // Only on a change: every write of observed state rebuilds an open menu.
+        let isReady = if case .ready = phase { true } else { false }
+        if isReady != isModelReady { isModelReady = isReady }
         let title = Self.modelMenuTitle(phase)
         // Whole percents only: the download reports progress many times a second.
         guard title != latestModelMenuTitle else { return }

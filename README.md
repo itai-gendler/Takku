@@ -54,9 +54,11 @@ On Macs managed by your company, IT may not allow apps that are not notarized. T
 
 ## First setup
 
-1. **Permissions.** On the first meeting macOS asks for the microphone and for *System Audio Recording Only*: allow both.
-   During that first meeting Takku also downloads the transcription model and prepares it, which takes a few minutes once: the menu shows the progress, and the first Summary waits for it.
-2. **Vault.** Takku menu → *Settings…* → *Obsidian Vault* → choose your vault folder. Takku creates `Meetings/_Templates/` with a default *Notes* Template; `Meetings/` and `Meetings/Transcripts/` fill up with the first meeting.
+At the first launch a *Welcome to Takku* window walks you through these steps (until you choose a vault, *Set up Takku…* in the menu opens it again). Each one can also be done later:
+
+1. **Permissions.** macOS asks for the microphone and for *System Audio Recording Only*: allow both. If you skip it, macOS asks at the first meeting.
+   The welcome window also downloads the transcription model and prepares it, which takes a few minutes once. If you skip it, that happens during the first meeting: the menu shows the progress, and the first Summary waits for it.
+2. **Vault.** In the welcome window, or Takku menu → *Settings…* → *Obsidian Vault* → choose your vault folder. Takku creates `Meetings/_Templates/` with a default *Notes* Template; `Meetings/` and `Meetings/Transcripts/` fill up with the first meeting.
 3. **Open at login** (optional). *Settings → General*: Takku starts with the Mac, in the menu bar. Turn it on from the copy in `/Applications`, the one you will keep using.
 4. **Summary Profile.** In *Summary Profiles* add a Profile: name, base URL, model, max context and, if the provider needs one, the API key (stored in the macOS Keychain). Press *Test connection*. Some examples:
 

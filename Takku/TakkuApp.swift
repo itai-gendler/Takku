@@ -23,6 +23,14 @@ struct TakkuApp: App {
         Settings {
             SettingsView(models: controller.models)
         }
+
+        Window("Welcome to Takku", id: WelcomeView.windowID) {
+            WelcomeView(controller: controller)
+        }
+        .windowResizability(.contentSize)
+        .restorationBehavior(.disabled)
+        // At launch only while there is no Vault; afterwards from the menu.
+        .defaultLaunchBehavior(AppSettings.vaultPath == nil ? .presented : .suppressed)
     }
 }
 
@@ -49,7 +57,9 @@ private struct MenuBarLabel: View {
 private struct MeetingMenu: View {
     let controller: MeetingController
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.openWindow) private var openWindow
     @AppStorage(AppSettings.activeProviderProfileKey) private var activeProfileID = ""
+    @AppStorage(AppSettings.vaultPathKey) private var vaultPath = ""
 
     var body: some View {
         if controller.isInProgress {
@@ -129,6 +139,12 @@ private struct MeetingMenu: View {
         }
 
         Divider()
+        if vaultPath.isEmpty {
+            Button("Set up Takku…") {
+                NSApplication.shared.activate()
+                openWindow(id: WelcomeView.windowID)
+            }
+        }
         Button("Report a problem…") { ProblemReporter.report() }
         Button("Settings…") {
             // Takku has no Dock icon: without activating it the window would stay behind the others.
