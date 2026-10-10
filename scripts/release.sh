@@ -1,5 +1,6 @@
 #!/bin/bash
-# Builds Takku in Release, signs it with the self-signed "Takku" certificate, zips it,
+# Builds Takku in Release, signs it with the "Developer ID Application" certificate, has Apple
+# notarize it (notarytool profile "takku", or $TAKKU_NOTARY_PROFILE), staples the ticket, zips it,
 # publishes it as a GitHub Release tagged v<MARKETING_VERSION> (from Config/Base.xcconfig) and
 # points the Homebrew cask in the tap (a clone of mameli/homebrew-takku, ../homebrew-takku or
 # $TAKKU_TAP) to it. A published version is never replaced: Homebrew checks the zip's SHA-256.
@@ -7,7 +8,11 @@
 # download button on takku.app) always gives the latest version.
 #
 #   scripts/release.sh            build, sign and zip into build/release/, then ask before publishing
-#   scripts/release.sh --dry-run  build, sign and zip only
+#   scripts/release.sh --dry-run  build, sign, notarize and zip only
+#
+# Once per Mac: the certificate from Xcode → Settings → Accounts → Manage Certificates, and
+#   xcrun notarytool store-credentials takku --apple-id <Apple ID> --team-id <Team ID>
+# with an app-specific password from account.apple.com.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -18,6 +23,8 @@ zip="build/release/Takku-$version.zip"
 latest=build/release/Takku.zip
 tap=${TAKKU_TAP:-../homebrew-takku}
 cask="$tap/Casks/takku.rb"
+identity="Developer ID Application"
+notary=${TAKKU_NOTARY_PROFILE:-takku}
 
 if [[ -n $(git status --porcelain) ]]; then
     echo "Commit or stash your changes first: the Release must match a commit." >&2
@@ -32,19 +39,47 @@ if [[ ! -f $cask || -n $(git -C "$tap" status --porcelain) ]]; then
     exit 1
 fi
 
+# The Team ID is the certificate's organizational unit.
+team=$(security find-certificate -c "$identity" -p 2>/dev/null | openssl x509 -noout -subject -nameopt multiline 2>/dev/null \
+    | sed -n 's/^ *organizationalUnitName *= *//p')
+if [[ -z $team ]]; then
+    echo "No \"$identity\" certificate in the keychain: create it in Xcode → Settings → Accounts → Manage Certificates." >&2
+    exit 1
+fi
+if ! xcrun notarytool history --keychain-profile "$notary" >/dev/null 2>&1; then
+    echo "No notarytool profile \"$notary\": run xcrun notarytool store-credentials $notary --apple-id <Apple ID> --team-id $team" >&2
+    exit 1
+fi
+
 rm -rf build/release
-# No get-task-allow entitlement: it is only for debugging.
+# No get-task-allow entitlement: it is only for debugging (and notarization refuses it).
+# A secure timestamp is required by notarization.
 xcodebuild -project Takku.xcodeproj -scheme Takku -configuration Release \
     -derivedDataPath build/release/DerivedData \
-    CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=Takku DEVELOPMENT_TEAM= \
-    CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO \
+    CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$identity" DEVELOPMENT_TEAM="$team" \
+    CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO OTHER_CODE_SIGN_FLAGS=--timestamp \
     clean build | grep -E "error: |BUILD"
 
-codesign --verify --strict "$app"
-[[ $(codesign -dvv "$app" 2>&1) == *"Authority=Takku"* ]] || { echo "Not signed with the Takku certificate." >&2; exit 1; }
+codesign --verify --strict --deep "$app"
+[[ $(codesign -dvv "$app" 2>&1) == *"Authority=$identity"* ]] || { echo "Not signed with the $identity certificate." >&2; exit 1; }
+
+# Notarized as a zip, then the ticket is stapled to the app, so Gatekeeper accepts it offline
+# too, and the app is zipped again with its ticket.
+ditto -c -k --keepParent "$app" "$zip"
+xcrun notarytool submit "$zip" --keychain-profile "$notary" --wait --output-format json > build/release/notary.json || true
+if [[ $(plutil -extract status raw -o - build/release/notary.json 2>/dev/null) != Accepted ]]; then
+    cat build/release/notary.json >&2
+    id=$(plutil -extract id raw -o - build/release/notary.json 2>/dev/null)
+    [[ -n $id ]] && xcrun notarytool log "$id" --keychain-profile "$notary" >&2
+    echo "Notarization failed." >&2
+    exit 1
+fi
+xcrun stapler staple -q "$app"
+spctl --assess --type execute "$app" || { echo "Gatekeeper refuses the notarized app." >&2; exit 1; }
+rm "$zip"
 ditto -c -k --keepParent "$app" "$zip"
 cp "$zip" "$latest"
-echo "Ready: $zip"
+echo "Ready: $zip (notarized)"
 
 [[ ${1:-} == --dry-run ]] && exit 0
 read -r -p "Publish $tag on GitHub? [y/N] " answer
@@ -57,15 +92,9 @@ fi
 gh release create "$tag" "$zip" "$latest" --target main --title "Takku $version" --notes-file - <<NOTES
 Apple Silicon Mac, macOS 15 or later.
 
-With Homebrew: \`brew install --cask mameli/takku/takku\` (or \`brew upgrade --cask takku\`), then steps 2 and 3. Otherwise:
+With Homebrew: \`brew install --cask mameli/takku/takku\` (or \`brew upgrade --cask takku\`). Otherwise download \`Takku-$version.zip\` (\`Takku.zip\` is the same file), open it and move **Takku** to **Applications**.
 
-1. Download \`Takku-$version.zip\` (\`Takku.zip\` is the same file), open it and move **Takku** to **Applications**.
-2. Open Takku. macOS says it cannot verify the app, because Takku is not notarized by Apple: press **Done**.
-3. Go to **System Settings → Privacy & Security**, scroll down and press **Open Anyway** next to Takku, then confirm with your password.
-
-Alternatively, run \`xattr -dr com.apple.quarantine /Applications/Takku.app\` in Terminal before opening it.
-
-See [takku.app/setup](https://takku.app/setup) for the first setup.
+Takku is notarized by Apple: it opens like any other app. See [takku.app/setup](https://takku.app/setup) for the first setup.
 NOTES
 
 # The cask points to this version's zip. Pushed through gh, like the Release.

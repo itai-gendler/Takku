@@ -41,16 +41,15 @@ Meetings can be in Italian, English or 23 other European languages (*Settings â†
    brew install --cask mameli/takku/takku
    ```
    Or without Homebrew: download `Takku-<version>.zip` from the [latest release](https://github.com/mameli/Takku/releases/latest) (Safari unzips it on its own) and move **Takku** to **Applications**.
-2. Open Takku. macOS says it cannot verify the app: Takku is signed, but not notarized by Apple, which needs a paid developer account. Press **Done**.
-3. Go to **System Settings â†’ Privacy & Security**, scroll down and press **Open Anyway** next to Takku, then confirm with your password. Alternatively, run `xattr -dr com.apple.quarantine /Applications/Takku.app` in Terminal before opening it.
+2. Open Takku. It is notarized by Apple, so it opens like any other app.
 
 Takku appears in the menu bar, not in the Dock. Continue with [First setup](#first-setup).
 
-**Updating**: `brew upgrade --cask takku`, or quit Takku and replace it in Applications with the new version; then repeat steps 2 and 3. Settings, Profiles, API keys, permissions and downloaded models are kept. `brew uninstall --cask --zap takku` also deletes Takku's settings, Recordings and models; your vault is not touched.
+**Updating**: `brew upgrade --cask takku`, or quit Takku and replace it in Applications with the new version. Settings, Profiles, API keys, permissions and downloaded models are kept. `brew uninstall --cask --zap takku` also deletes Takku's settings, Recordings and models; your vault is not touched.
 
 **Coming from Steno**: Takku is Steno's new name (from *taccuino*, the notebook in its icon). `brew upgrade` replaces Steno with Takku; without Homebrew, install Takku as above and delete Steno from Applications. At the first launch Takku brings over Steno's settings, Profiles, Recordings and models; macOS asks once for your password to let Takku read the API keys saved by Steno (choose *Always Allow*). The permissions (microphone, system audio, calendars, notifications) and *Open at login* must be granted again. Notes already in your vault keep working.
 
-On Macs managed by your company, IT may not allow apps that are not notarized. To build Takku yourself instead, see [Build from source](#build-from-source).
+**Coming from 0.x**: from 1.0 Takku is signed with an Apple Developer ID instead of its own certificate, so macOS treats it as a new app once: it asks again for the microphone, the system audio and the calendars, and for your password to let Takku read the API keys you saved (choose *Always Allow*). Turn *Open at login* on again if you used it.
 
 ## First setup
 
