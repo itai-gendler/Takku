@@ -29,8 +29,7 @@ struct TakkuApp: App {
         }
         .windowResizability(.contentSize)
         .restorationBehavior(.disabled)
-        // At launch only while there is no Vault; afterwards from the menu.
-        .defaultLaunchBehavior(AppSettings.vaultPath == nil ? .presented : .suppressed)
+        .defaultLaunchBehavior(WelcomeView.isNeededAtLaunch ? .presented : .suppressed)
     }
 }
 

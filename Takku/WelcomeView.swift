@@ -7,6 +7,15 @@ import SwiftUI
 struct WelcomeView: View {
     static let windowID = "welcome"
 
+    /// While there is no Vault; afterwards from the menu. In Debug builds `-showWelcome YES` shows
+    /// it anyway, to try it with the real settings (*Choose…* saves the Vault for real).
+    static var isNeededAtLaunch: Bool {
+        #if DEBUG
+        if UserDefaults.standard.bool(forKey: "showWelcome") { return true }
+        #endif
+        return AppSettings.vaultPath == nil
+    }
+
     let controller: MeetingController
     @Environment(\.openSettings) private var openSettings
     @Environment(\.dismissWindow) private var dismissWindow
