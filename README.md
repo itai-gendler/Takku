@@ -66,8 +66,11 @@ At the first launch a *Welcome to Takku* window walks you through these steps (u
    | llama.cpp on your Mac (`llama-server -hf ggml-org/gemma-4-E4B-it-GGUF:Q4_0 -c 32768`) | `http://localhost:8080/v1` | `ggml-org/gemma-4-E4B-it-GGUF:Q4_0` | none |
    | [Regolo.ai](https://regolo.ai) (Italy) | `https://api.regolo.ai/v1` | `gemma4-31b` | yes |
    | [Mistral](https://console.mistral.ai) (France) | `https://api.mistral.ai/v1` | `mistral-medium-latest` | yes |
+   | [OpenRouter](https://openrouter.ai) (United States) | `https://openrouter.ai/api/v1` | `openai/gpt-6-luna-pro` or any other from its catalogue | yes |
 
    Set *max context* to the model's real limit (for a local server, the `-c` it was started with). Plain `http://` is accepted only for servers on your Mac.
+
+   OpenRouter is outside the EU and passes your requests on to the model's provider: Takku does not stop you from using it, but know where your meetings go.
 
    Takku does not check where a provider processes your data: check the provider's terms, and your company's policy, before using it for real meetings.
 
