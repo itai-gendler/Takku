@@ -17,7 +17,7 @@ It was built as an alternative to Granola for people whose company does not allo
 - **Records both sides of a call**: your microphone and the system audio (Meet, Zoom, Teams, any app), with echo cancellation.
 - **Tells the others apart**: the Transcript shows Speaker 1, Speaker 2… by voice, and the Summary names them when the call makes clear who they are, or when you name them in the note.
 - **Knows your calendar** (optional): the note takes the name and the participants of the event in progress.
-- **Suggests when to record**: a notification when a call app takes the microphone, and another when the call seems over.
+- **Suggests when to record** (optional): a notification when a call app takes the microphone, and another when the call seems over.
 - **Transcribes locally** with OpenAI Whisper or NVIDIA Parakeet: the audio never leaves the Mac. Choose between Whisper Large v3 Turbo (default), its full version, Small and Parakeet v3 in *Settings → Transcription*.
 - **Summarises with a provider you pick**: llama.cpp, Ollama or LM Studio on your Mac, or a remote OpenAI-compatible API. You can also skip the Summary and keep only the Transcript.
 - **Writes Markdown into Obsidian**: one note per meeting, opened when the meeting starts so you can take notes, plus a separate Transcript file. Your own notes are kept and used to steer the Summary.

@@ -27,7 +27,7 @@ enum AppSettings {
     static func registerDefaults() {
         UserDefaults.standard.register(defaults: [
             openInObsidianKey: true,
-            suggestCallsKey: true,
+            suggestCallsKey: false,
             checkForUpdatesKey: true,
             defaultTemplateKey: Template.defaultName,
             retentionDaysKey: Retention.days,

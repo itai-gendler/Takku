@@ -79,7 +79,7 @@ struct UpdatesToggle: View {
 
 /// Notifications that suggest starting and stopping a Meeting when a call app takes and releases the microphone.
 struct SuggestCallsToggle: View {
-    @AppStorage(AppSettings.suggestCallsKey) private var suggestCalls = true
+    @AppStorage(AppSettings.suggestCallsKey) private var suggestCalls = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
