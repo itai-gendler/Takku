@@ -55,10 +55,13 @@ struct WelcomeView: View {
                     .foregroundStyle(.secondary)
                 HStack {
                     Button("Allow microphone and system audio") {
+                        // Taken now: while the prompts are open another app is in front.
+                        let window = NSApplication.shared.keyWindow
                         Task {
                             await AudioPermissions.request()
                             microphoneAllowed = AudioPermissions.microphoneAllowed
                             permissionsAsked = true
+                            await AudioPermissions.bringBack(window)
                         }
                     }
                     .disabled(permissionsAsked)
@@ -122,6 +125,7 @@ struct WelcomeView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 HStack {
                     Button("Add a Profile in Settings…") {
+                        SettingsRequest.shared.showsProfiles = true
                         NSApplication.shared.activate()
                         openSettings()
                     }
@@ -152,6 +156,10 @@ struct WelcomeView: View {
         .frame(width: 560, height: 720)
         // Takku has no Dock icon: without activating it the window would open behind the others.
         .onAppear { NSApplication.shared.activate() }
+        // Back from System Settings, where the microphone may have just been allowed.
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            microphoneAllowed = AudioPermissions.microphoneAllowed
+        }
     }
 }
 

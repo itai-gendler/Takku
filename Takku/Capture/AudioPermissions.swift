@@ -26,6 +26,24 @@ enum AudioPermissions {
         }
     }
 
+    /// The prompts belong to another app of macOS: when the last one closes, the focus goes back
+    /// to the app that was in front before Takku, and `window` would stay behind it (Takku has no
+    /// Dock icon to come back with). The system audio prompt can outlive `request()`, so this
+    /// waits, up to two minutes, until the app in front is no longer one without a Dock icon.
+    static func bringBack(_ window: NSWindow?) async {
+        for _ in 0..<480 {
+            guard let front = NSWorkspace.shared.frontmostApplication,
+                  front != .current,
+                  front.activationPolicy != .regular
+            else { break }
+            try? await Task.sleep(for: .milliseconds(250))
+        }
+        NSApplication.shared.activate()
+        // In front even if macOS turns the activation down; the next click then activates Takku.
+        window?.orderFrontRegardless()
+        window?.makeKey()
+    }
+
     static func openSystemAudioSettings() {
         NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
     }
