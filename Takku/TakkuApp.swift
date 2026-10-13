@@ -83,7 +83,7 @@ private struct MeetingMenu: View {
         // With the "Transcript" Profile there is no Summary, so no Template to choose.
         if !activeProfileID.isEmpty {
             Picker("Template", selection: Bindable(controller).templateName) {
-                ForEach(Vault.templateChoices(including: controller.templateName), id: \.self) { Text($0).tag($0) }
+                ForEach(TakkuFolder.templateChoices(including: controller.templateName), id: \.self) { Text($0).tag($0) }
             }
         }
         // A Meeting's Profile is fixed at the start: changing it while recording would have no effect.

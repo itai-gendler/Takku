@@ -41,12 +41,12 @@
         }
       }
     },
-    "A new Template starts from Notes: change instructions and sections in Obsidian. They live in Meetings/_Templates/ in the Vault.": {
+    "A new Template starts from Notes: change instructions and sections with Edit With. They live in ~/.takku/templates/.": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un Template nuovo parte da Notes: in Obsidian cambi istruzioni e sezioni. Sono in Meetings/_Templates/ nel Vault."
+            "value": "Un Template nuovo parte da Notes: istruzioni e sezioni le cambi con Modifica con. Sono in ~/.takku/templates/."
           }
         }
       }
@@ -141,16 +141,6 @@
         }
       }
     },
-    "Choose the Vault first.": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Scegli prima il Vault."
-          }
-        }
-      }
-    },
     "Choose…": {
       "localizations": {
         "it": {
@@ -171,22 +161,22 @@
         }
       }
     },
-    "Create and open": {
+    "Create": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Crea e apri"
+            "value": "Crea"
           }
         }
       }
     },
-    "Created \"%@\": edit it in Obsidian.": {
+    "%@ (default)": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creato \"%@\": modificalo in Obsidian."
+            "value": "%@ (predefinito)"
           }
         }
       }
@@ -271,12 +261,42 @@
         }
       }
     },
-    "Entries": {
+    "1 term": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voci"
+            "value": "1 termine"
+          }
+        }
+      }
+    },
+    "No terms yet": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ancora nessun termine"
+          }
+        }
+      }
+    },
+    "%lld terms": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld termini"
+          }
+        }
+      }
+    },
+    "%@ and %lld more": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ e altri %lld"
           }
         }
       }
@@ -542,12 +562,12 @@
         }
       }
     },
-    "Names and technical words that recognition gets wrong, in Meetings/_Vocabulary.md in the Vault. The Summary uses them; the variants you list are fixed in the Transcript.": {
+    "In ~/.takku/vocabulary.md, one per line: `- Scaleway = scale uai | our EU cloud provider`. The Summary uses them; the variants you list are fixed in the Transcript.": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nomi e parole tecniche che il riconoscimento sbaglia, in Meetings/_Vocabulary.md nel Vault. Il Summary li usa; le varianti che elenchi vengono corrette nel Transcript."
+            "value": "In ~/.takku/vocabulary.md, uno per riga: `- Scaleway = scale uai | il nostro cloud provider europeo`. Il Summary li usa; le varianti che elenchi vengono corrette nel Transcript."
           }
         }
       }
@@ -622,12 +642,12 @@
         }
       }
     },
-    "Open in Obsidian": {
+    "Edit With": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apri in Obsidian"
+            "value": "Modifica con"
           }
         }
       }
@@ -642,12 +662,12 @@
         }
       }
     },
-    "Open Vocabulary": {
+    "Edit Vocabulary With": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apri il Vocabolario"
+            "value": "Modifica il Vocabolario con"
           }
         }
       }

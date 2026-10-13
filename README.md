@@ -21,7 +21,7 @@ It was built as an alternative to Granola for people whose company does not allo
 - **Transcribes locally** with OpenAI Whisper or NVIDIA Parakeet: the audio never leaves the Mac. Choose between Whisper Large v3 Turbo (default), its full version, Small and Parakeet v3 in *Settings → Transcription*.
 - **Summarises with a provider you pick**: llama.cpp, Ollama or LM Studio on your Mac, or a remote OpenAI-compatible API. You can also skip the Summary and keep only the Transcript.
 - **Writes Markdown into Obsidian**: one note per meeting, opened when the meeting starts so you can take notes, plus a separate Transcript file. Your own notes are kept and used to steer the Summary.
-- **Templates are notes in your vault**: write the structure and instructions of the Summary in Obsidian.
+- **Templates are Markdown files**: write the structure and instructions of the Summary in `~/.takku/templates/`, with any editor.
 - **A Vocabulary for your jargon**: names and technical terms that recognition gets wrong are fixed in the Transcript and spelled right in the Summary.
 
 https://github.com/user-attachments/assets/f74b6fe5-6423-46f6-9194-a4f1c48a4579
@@ -57,7 +57,7 @@ At the first launch a *Welcome to Takku* window walks you through these steps (u
 
 1. **Permissions.** macOS asks for the microphone and for *System Audio Recording Only*: allow both. If you skip it, macOS asks at the first meeting.
    The welcome window also downloads the transcription model and prepares it, which takes a few minutes once. If you skip it, that happens during the first meeting: the menu shows the progress, and the first Summary waits for it.
-2. **Vault.** In the welcome window, or Takku menu → *Settings…* → *Obsidian Vault* → choose your vault folder. Takku creates `Meetings/_Templates/` with a default *Notes* Template; `Meetings/` and `Meetings/Transcripts/` fill up with the first meeting.
+2. **Vault.** In the welcome window, or Takku menu → *Settings…* → *Obsidian Vault* → choose your vault folder. `Meetings/` and `Meetings/Transcripts/` fill up with the first meeting.
 3. **Open at login** (optional). *Settings → General*: Takku starts with the Mac, in the menu bar. Turn it on from the copy in `/Applications`, the one you will keep using.
 4. **Summary Profile.** In *Summary Profiles* add a Profile: name, base URL, model, max context and, if the provider needs one, the API key (stored in the macOS Keychain). Press *Test connection*. Some examples:
 
@@ -103,11 +103,11 @@ The Transcript then shows *Mario Rossi (Speaker 1)* and the Summary uses the nam
 
 ### Templates
 
-A Template is a note in `Meetings/_Templates/`: its text tells the model what to write and how. Create one from *Settings → Templates*, then edit it in Obsidian. Add `summary_language: en` (or `it`, `fr`, …) to its frontmatter to always get the Summary in that language; otherwise it follows the language of the meeting.
+A Template is a Markdown file in `~/.takku/templates/`: its text tells the model what to write and how. Takku creates a default *Notes* Template there at launch. Create others from *Settings → Templates*, then edit them with *Edit With*, in any text editor. Add `summary_language: en` (or `it`, `fr`, …) to its frontmatter to always get the Summary in that language; otherwise it follows the language of the meeting.
 
 ### Vocabulary
 
-Names, acronyms and technical words that recognition gets wrong go in `Meetings/_Vocabulary.md`: open it from *Settings → Vocabulary*. One entry per line: the correct term, then after `=` what is usually heard instead, then after `|` a short description, the last two optional:
+Names, acronyms and technical words that recognition gets wrong go in `~/.takku/vocabulary.md`: open it from *Settings → Vocabulary → Edit Vocabulary With*. One entry per line: the correct term, then after `=` what is usually heard instead, then after `|` a short description, the last two optional:
 
 ```markdown
 - Kubernetes = cubernetes, kubernetis
@@ -119,7 +119,8 @@ The variants are replaced with the term in the Transcript, as whole words: do no
 
 ### Where your data is
 
-- **Notes, Transcripts, Templates and Vocabulary**: in your vault, as plain Markdown.
+- **Notes and Transcripts**: in your vault, as plain Markdown.
+- **Templates and Vocabulary**: in `~/.takku/`, as plain Markdown, the same whatever the vault.
 - **Audio**: in `~/Library/Application Support/Takku/Recordings/`, about 20 MB per hour of meeting. It is deleted after 7 days (*Settings → Recordings*); after that, Retry rebuilds the Summary from the Transcript in the vault.
 - **API keys**: in the macOS Keychain.
 - **Transcription model**: in `~/Library/Application Support/Takku/Models/`, downloaded once from Hugging Face. Only the model is downloaded; no audio or text is sent.

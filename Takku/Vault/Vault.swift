@@ -7,14 +7,13 @@ struct Vault {
 
     var meetingsFolder: URL { root.appending(path: "Meetings", directoryHint: .isDirectory) }
     var transcriptsFolder: URL { meetingsFolder.appending(path: "Transcripts", directoryHint: .isDirectory) }
-    var templatesFolder: URL { meetingsFolder.appending(path: "_Templates", directoryHint: .isDirectory) }
 
     static var configured: Vault? {
         AppSettings.vaultPath.map { Vault(root: URL(filePath: $0, directoryHint: .isDirectory)) }
     }
 
-    /// Asks for the Vault folder (Settings, welcome window), saves it and adds the default
-    /// Template. The chosen path, or `nil` if the user cancelled.
+    /// Asks for the Vault folder (Settings, welcome window) and saves it. The chosen path, or
+    /// `nil` if the user cancelled.
     @MainActor
     static func choose() -> String? {
         let panel = NSOpenPanel()
@@ -25,81 +24,7 @@ struct Vault {
         guard panel.runModal() == .OK, let url = panel.url else { return nil }
         let path = url.path(percentEncoded: false)
         AppSettings.vaultPath = path
-        try? configured?.ensureDefaultTemplate()
         return path
-    }
-
-    // MARK: - Templates
-
-    /// The available Templates, by file name (without `.md`), in alphabetical order.
-    func templateNames() -> [String] {
-        Self.noteNames(in: templatesFolder).sorted { $0.localizedStandardCompare($1) == .orderedAscending }
-    }
-
-    /// The Templates to offer in a menu: the Vault's plus the one already chosen, even if it is gone meanwhile.
-    static func templateChoices(including selected: String) -> [String] {
-        let names = configured?.templateNames() ?? []
-        return names.contains(selected) ? names : [selected] + names
-    }
-
-    /// Creates the default Template (Notes) if the Templates folder has none, or if the
-    /// default Template of the Settings no longer exists (then the default becomes Notes).
-    func ensureDefaultTemplate() throws {
-        let names = templateNames()
-        guard names.isEmpty || !names.contains(AppSettings.defaultTemplate) else { return }
-        try FileManager.default.createDirectory(at: templatesFolder, withIntermediateDirectories: true)
-        if !names.contains(Template.defaultName) {
-            try Template.defaultFileContent.write(to: templateURL(Template.defaultName), atomically: true, encoding: .utf8)
-        }
-        AppSettings.defaultTemplate = Template.defaultName
-    }
-
-    /// Creates a new Template from the default one and returns its file name (without `.md`).
-    func createTemplate(named name: String) throws -> String {
-        guard let safeName = VaultNaming.fileName(name) else { throw VaultError.invalidName(name) }
-        try FileManager.default.createDirectory(at: templatesFolder, withIntermediateDirectories: true)
-        let fileName = VaultNaming.available(safeName, taken: Self.noteNames(in: templatesFolder))
-        try Template.newFileContent(name: fileName)
-            .write(to: templateURL(fileName), atomically: true, encoding: .utf8)
-        return fileName
-    }
-
-    /// Moves the Template to the Trash: it can be recovered.
-    func trashTemplate(named name: String) throws {
-        try FileManager.default.trashItem(at: templateURL(name), resultingItemURL: nil)
-    }
-
-    func templateURL(_ name: String) -> URL {
-        templatesFolder.appending(path: name + ".md")
-    }
-
-    /// The Template with that file name; if it is gone, the Vault's Notes (as the user edited it),
-    /// and only without that the built-in text.
-    func template(named name: String) -> Template {
-        for candidate in [name, Template.defaultName] {
-            if let content = try? String(contentsOf: templateURL(candidate), encoding: .utf8) {
-                return Template(fileName: candidate, content: content)
-            }
-        }
-        return Template(fileName: Template.defaultName, content: Template.defaultFileContent)
-    }
-
-    // MARK: - Vocabulary
-
-    var vocabularyURL: URL { meetingsFolder.appending(path: "_Vocabulary.md") }
-
-    /// The Vocabulary written in the Vault: empty if the file is missing or unreadable.
-    func vocabulary() -> Vocabulary {
-        (try? String(contentsOf: vocabularyURL, encoding: .utf8)).map(Vocabulary.init(fileContent:)) ?? .empty
-    }
-
-    /// Creates the Vocabulary file with the example text if it does not exist; says whether it did.
-    @discardableResult
-    func ensureVocabularyFile() throws -> Bool {
-        guard !FileManager.default.fileExists(atPath: vocabularyURL.path(percentEncoded: false)) else { return false }
-        try FileManager.default.createDirectory(at: meetingsFolder, withIntermediateDirectories: true)
-        try Vocabulary.exampleFileContent.write(to: vocabularyURL, atomically: true, encoding: .utf8)
-        return true
     }
 
     // MARK: - Meeting notes and Transcripts

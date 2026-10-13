@@ -17,8 +17,8 @@ Personal use, one machine (M3 Pro, 18 GB, macOS 26). Meetings in Italian or Engl
 - Language detected automatically or forced
 - **Provider profiles** for the Summary, OpenAI-compatible adapter, keys in the Keychain, minimal Settings window
 - **Meeting note** created at start and opened in Obsidian; **Managed section**; Transcript in a separate file
-- Templates read from the Vault, **Regeneration**, Retry
-- **Vocabulary** in the Vault: variants replaced in the Transcript, terms in the Summary prompt ([ADR 0005](adr/0005-vocabulary-without-llm-pass-or-engine-biasing.md))
+- Templates read from `~/.takku/templates/`, **Regeneration**, Retry
+- **Vocabulary** in `~/.takku/vocabulary.md`: variants replaced in the Transcript, terms in the Summary prompt ([ADR 0005](adr/0005-vocabulary-without-llm-pass-or-engine-biasing.md))
 - Recording kept for 7 days, **Processing** queue
 - English user interface with Italian translation (string catalogs); English Vault format
 
@@ -130,14 +130,14 @@ Rules:
 
 ## Template
 
-- Folder `<Vault>/Meetings/_Templates/`. The default Template is `Notes.md`, Granola style: topics in the order they were discussed, each with a `###` heading and bullets with sub-bullets (reasons, people, figures, links), then `### Next steps` with `- [ ] What to do (Who)` and the context below. No opening summary and no fixed sections. Takku creates it at app launch and when the Vault is chosen, if the folder is empty or if the default Template no longer exists (then the default goes back to Notes).
+- Folder `~/.takku/templates/`, global like the Vocabulary: the same whatever the Vault. The default Template is `Notes.md`, Granola style: topics in the order they were discussed, each with a `###` heading and bullets with sub-bullets (reasons, people, figures, links), then `### Next steps` with `- [ ] What to do (Who)` and the context below. No opening summary and no fixed sections. Takku creates it at app launch, if the folder is empty or if the default Template no longer exists (then the default goes back to Notes).
 - Format: frontmatter with `name` and `summary_language` (any language code such as `it`, `en`, `fr`, `de`; `auto` or missing = the Meeting's language). The body, i.e. free-form instructions and heading structure, is passed to the model as it is.
 - The Template is chosen at start (default from Settings) and can change until the stop.
-- In Settings, Templates section: list, default Template, "New Template" (name → file created from Notes and opened in Obsidian), "Open in Obsidian", "Delete" (asks for confirmation, then moves the file to the Trash with no further message: the row disappearing is enough; if it was the default, Notes becomes the default again; Notes itself cannot be deleted). A Meeting whose Template is gone uses the Vault's Notes, as the user edited it; only without it the built-in text. New files (Templates, Meeting notes) are opened in Obsidian after a second, otherwise Obsidian may not have noticed them yet and answers "file not found". The text is written in Obsidian: Takku has no editor.
+- In Settings, Templates section: list, default Template, "New Template" (name → file created from Notes; *Create* does not open it), "Edit With", "Delete" (asks for confirmation, then moves the file to the Trash with no further message: the row disappearing is enough; if it was the default, Notes becomes the default again; Notes itself cannot be deleted). A Meeting whose Template is gone uses Notes, as the user edited it; only without it the built-in text. *Edit With* is a menu of the apps that edit Markdown or plain text (the Editor role in their document types; viewers such as browsers, Instruments, Pages and Numbers are left out), with their icon, the system's default for Markdown first and marked *(default)*, the others in alphabetical order; read from Launch Services every time Settings opens. The files are outside the Vault, so Obsidian is not offered. Takku has no editor. The list is read again when Takku comes back to the front, so Templates added or renamed in Finder show up.
 
 ## Vocabulary
 
-The names, acronyms and technical words that recognition gets wrong, in the file `<Vault>/Meetings/_Vocabulary.md`, written in Obsidian like the Templates. It is global (it applies to every Meeting) and is read at every Processing: a change counts from the next Meeting, or from a Retry with the audio. If the file is missing or empty everything works as before; without a Vault there is no Vocabulary. Why it works this way and not through the engines or an LLM pass: [ADR 0005](adr/0005-vocabulary-without-llm-pass-or-engine-biasing.md).
+The names, acronyms and technical words that recognition gets wrong, in the file `~/.takku/vocabulary.md`, written in the user's editor like the Templates. It is global (it applies to every Meeting, whatever the Vault) and is read at every Processing: a change counts from the next Meeting, or from a Retry with the audio. If the file is missing or empty everything works as before. It also applies without a Vault, to the Transcript left in the Recording folder. Why it works this way and not through the engines or an LLM pass: [ADR 0005](adr/0005-vocabulary-without-llm-pass-or-engine-biasing.md).
 
 One entry per line, as a Markdown list item:
 
@@ -175,7 +175,7 @@ One entry per line, as a Markdown list item:
 - Vault path
 - Templates and default Template
 - Summary Profiles and active Profile (with "Test connection")
-- Vocabulary: number of entries and "Open Vocabulary" (creates the file with an example if it is missing, then opens it in Obsidian)
+- Vocabulary: the number of terms read from the file ("No terms yet" if it is missing or has none) with the first four below, in the file's order, "and N more" after them, so a line written in the wrong format shows by its term missing; the path and an example entry in the footer; "Edit Vocabulary With", the same editor menu as the Templates (creates the file with an example if it is missing, then opens it with the chosen app)
 - Transcription: models (Download, Use, Delete; the one in use cannot be deleted)
 - Recordings: days the audio is kept (default 7), space used, "Show in Finder", "Delete audio" (all concluded Meetings, with confirmation). A shorter retention applies at the next cleanup, not on the spot.
 

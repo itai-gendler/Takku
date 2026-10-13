@@ -1,6 +1,6 @@
 import Foundation
 
-/// The terms speech recognition gets wrong, read from a file in the Vault: each entry is the
+/// The terms speech recognition gets wrong, read from `~/.takku/vocabulary.md`: each entry is the
 /// correct term, optionally with the variants usually heard instead and a short description.
 public struct Vocabulary: Equatable, Sendable {
     public struct Entry: Equatable, Sendable {

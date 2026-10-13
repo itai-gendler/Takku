@@ -200,7 +200,7 @@ final class MeetingProcessor {
         }
 
         // Read once per Processing: a change counts from the next Meeting, or from a Retry.
-        let vocabulary = Vault.configured?.vocabulary() ?? .empty
+        let vocabulary = TakkuFolder.vocabulary()
         var problems: [String] = []
         // An unreadable Segment (e.g. the one open during a crash) leaves a gap in the
         // Transcript but does not prevent the Summary: it is a warning, not a failure.
@@ -254,7 +254,7 @@ final class MeetingProcessor {
             let (transcript, language) = Transcript.parse(vaultFile: transcriptFile)
             let summaryProblem: String?
             (noteURL, summaryProblem) = try await writeSummary(
-                transcript, language: language, into: noteURL, record: record, vault: vault, vocabulary: vault.vocabulary()
+                transcript, language: language, into: noteURL, record: record, vault: vault, vocabulary: TakkuFolder.vocabulary()
             ) { noteURL, summary, speakerNames in
                 // Only the labels: the text of a Transcript already in the Vault is the user's.
                 if let relabeled = Transcript.relabeling(vaultFile: transcriptFile, names: speakerNames) {
@@ -356,7 +356,7 @@ final class MeetingProcessor {
         let (summary, title) = await summarize(
             transcript.naming(speakerNames), language: language, personalNotes: note.personalNotes,
             participants: note.participants, wantsTitle: wantsTitle,
-            template: vault.template(named: record.templateName), profile: record.summaryProfile, vocabulary: vocabulary
+            template: TakkuFolder.template(named: record.templateName), profile: record.summaryProfile, vocabulary: vocabulary
         )
         let rename = renameIfProvisional(noteURL, title: title, startedAt: record.startedAt, in: vault)
         try writeNote(rename.url, summary, speakerNames)

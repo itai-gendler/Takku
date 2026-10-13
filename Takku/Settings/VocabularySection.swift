@@ -2,52 +2,68 @@ import AppKit
 import TakkuCore
 import SwiftUI
 
-/// The Vault's Vocabulary: one file, written in Obsidian like the Templates.
+/// The Vocabulary: the terms Takku read from the file, so a line written wrong shows by not
+/// being there, and the editors to change it with.
 struct VocabularySection: View {
-    /// Changes when another Vault is chosen: the count must be read again.
-    let vaultPath: String
-    @State private var entryCount = 0
+    @State private var terms: [String] = []
     @State private var status: String?
+    /// Read when the section appears: apps come and go.
+    @State private var editors = TextEditors.none
 
     var body: some View {
         Section {
-            if Vault.configured == nil {
-                Text("Choose the Vault first.").foregroundStyle(.secondary)
-            } else {
-                LabeledContent("Entries") {
-                    HStack {
-                        Text(entryCount, format: .number)
-                        Button("Open Vocabulary", action: open)
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    switch terms.count {
+                    case 0: Text("No terms yet")
+                    case 1: Text("1 term")
+                    default: Text("\(terms.count) terms")
+                    }
+                    if let preview {
+                        Text(preview)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
                     }
                 }
-                if let status {
-                    Text(status).foregroundStyle(.secondary)
-                }
+                Spacer()
+                EditWithMenu(title: "Edit Vocabulary With", editors: editors, edit: edit)
+            }
+            if let status {
+                Text(status).foregroundStyle(.secondary)
             }
         } header: {
             Text("Vocabulary")
         } footer: {
-            Text("Names and technical words that recognition gets wrong, in Meetings/_Vocabulary.md in the Vault. The Summary uses them; the variants you list are fixed in the Transcript.")
+            Text("In ~/.takku/vocabulary.md, one per line: `- Scaleway = scale uai | our EU cloud provider`. The Summary uses them; the variants you list are fixed in the Transcript.")
                 .foregroundStyle(.secondary)
         }
-        .onAppear(perform: reload)
-        .onChange(of: vaultPath) { reload() }
-        // Back from Obsidian after editing the file.
+        .onAppear {
+            editors = .markdown()
+            reload()
+        }
+        // Back from the editor after changing the file.
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in reload() }
     }
 
-    private func reload() {
-        entryCount = Vault.configured?.vocabulary().entries.count ?? 0
+    /// The first terms, in the file's order, and how many are left out.
+    private var preview: String? {
+        let shown = terms.prefix(Self.previewCount).joined(separator: ", ")
+        guard !shown.isEmpty else { return nil }
+        let more = terms.count - Self.previewCount
+        return more > 0 ? String(localized: "\(shown) and \(more) more") : shown
     }
 
-    private func open() {
-        guard let vault = Vault.configured else { return }
+    private static let previewCount = 4
+
+    private func reload() {
+        terms = TakkuFolder.vocabulary().entries.map(\.term)
+    }
+
+    private func edit(with app: URL) {
         do {
-            if try vault.ensureVocabularyFile() {
-                Vault.openNewFileInObsidian(vault.vocabularyURL)
-            } else {
-                Vault.openInObsidian(vault.vocabularyURL)
-            }
+            try TakkuFolder.ensureVocabularyFile()
+            TextEditors.open(TakkuFolder.vocabularyURL, with: app)
             status = nil
         } catch {
             status = error.localizedDescription

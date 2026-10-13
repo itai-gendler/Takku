@@ -2,60 +2,62 @@ import AppKit
 import TakkuCore
 import SwiftUI
 
-/// The Vault's Templates: created here and written in Obsidian, like the other notes.
+/// The Templates in `~/.takku/templates`: created here and written in the user's editor.
 struct TemplatesSection: View {
     @Binding var defaultTemplate: String
-    /// Changes when another Vault is chosen: the list must be read again.
-    let vaultPath: String
     @State private var names: [String] = []
     @State private var newName = ""
     @State private var status: String?
     @State private var pendingDeletion: String?
+    /// Read when the section appears: apps come and go.
+    @State private var editors = TextEditors.none
 
     var body: some View {
         Section {
-            if Vault.configured == nil {
-                Text("Choose the Vault first.").foregroundStyle(.secondary)
-            } else {
-                Picker("Default Template", selection: $defaultTemplate) {
-                    ForEach(Vault.templateChoices(including: defaultTemplate), id: \.self) { Text($0).tag($0) }
-                }
-                .onChange(of: defaultTemplate) { AppSettings.defaultTemplate = defaultTemplate }
+            Picker("Default Template", selection: $defaultTemplate) {
+                ForEach(TakkuFolder.templateChoices(including: defaultTemplate), id: \.self) { Text($0).tag($0) }
+            }
+            .onChange(of: defaultTemplate) { AppSettings.defaultTemplate = defaultTemplate }
 
-                ForEach(names, id: \.self) { name in
-                    HStack {
-                        Text(name)
-                        if name == defaultTemplate {
-                            Text("Default").font(.caption).foregroundStyle(.green)
-                        }
-                        Spacer()
-                        Button("Open in Obsidian") { open(name) }
-                        // Notes cannot go: Takku would create it again as the fallback Template.
-                        if name != Template.defaultName {
-                            Button("Delete", role: .destructive) { pendingDeletion = name }
-                        }
+            ForEach(names, id: \.self) { name in
+                HStack {
+                    Text(name)
+                    if name == defaultTemplate {
+                        Text("Default").font(.caption).foregroundStyle(.green)
+                    }
+                    Spacer()
+                    EditWithMenu(title: "Edit With", editors: editors) { app in
+                        TextEditors.open(TakkuFolder.templateURL(name), with: app)
+                    }
+                    // Notes cannot go: Takku would create it again as the fallback Template.
+                    if name != Template.defaultName {
+                        Button("Delete", role: .destructive) { pendingDeletion = name }
                     }
                 }
+            }
 
-                LabeledContent("New Template") {
-                    HStack {
-                        PasteableTextField(placeholder: String(localized: "e.g. Weekly 1:1"), text: $newName)
-                        Button("Create and open", action: create)
-                            .disabled(newName.trimmingCharacters(in: .whitespaces).isEmpty)
-                    }
+            LabeledContent("New Template") {
+                HStack {
+                    PasteableTextField(placeholder: String(localized: "e.g. Weekly 1:1"), text: $newName)
+                    Button("Create", action: create)
+                        .disabled(newName.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
-                if let status {
-                    Text(status).foregroundStyle(.secondary)
-                }
+            }
+            if let status {
+                Text(status).foregroundStyle(.secondary)
             }
         } header: {
             Text("Templates")
         } footer: {
-            Text("A new Template starts from Notes: change instructions and sections in Obsidian. They live in Meetings/_Templates/ in the Vault.")
+            Text("A new Template starts from Notes: change instructions and sections with Edit With. They live in ~/.takku/templates/.")
                 .foregroundStyle(.secondary)
         }
-        .onAppear(perform: reload)
-        .onChange(of: vaultPath) { reload() }
+        .onAppear {
+            editors = .markdown()
+            reload()
+        }
+        // Back from the editor or Finder, where Templates can be added or renamed.
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in reload() }
         .confirmationDialog(
             String(localized: "Move the Template \"\(pendingDeletion ?? "")\" to the Trash?"),
             isPresented: Binding(get: { pendingDeletion != nil }, set: { if !$0 { pendingDeletion = nil } })
@@ -69,33 +71,26 @@ struct TemplatesSection: View {
     }
 
     private func reload() {
-        names = Vault.configured?.templateNames() ?? []
+        names = TakkuFolder.templateNames()
     }
 
     private func create() {
-        guard let vault = Vault.configured else { return }
         do {
-            let name = try vault.createTemplate(named: newName)
+            _ = try TakkuFolder.createTemplate(named: newName)
             newName = ""
             reload()
-            status = String(localized: "Created \"\(name)\": edit it in Obsidian.")
-            Vault.openNewFileInObsidian(vault.templateURL(name))
+            // The new row, with its Edit With, is enough.
+            status = nil
         } catch {
             status = error.localizedDescription
         }
     }
 
-    private func open(_ name: String) {
-        guard let vault = Vault.configured else { return }
-        Vault.openInObsidian(vault.templateURL(name))
-    }
-
     private func delete(_ name: String) {
-        guard let vault = Vault.configured else { return }
         do {
-            try vault.trashTemplate(named: name)
+            try TakkuFolder.trashTemplate(named: name)
             if defaultTemplate == name { defaultTemplate = Template.defaultName }
-            try? vault.ensureDefaultTemplate()
+            try? TakkuFolder.ensureDefaultTemplate()
             reload()
             // The row disappearing is enough: no message, and none left over from before.
             status = nil

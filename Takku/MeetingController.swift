@@ -64,7 +64,7 @@ final class MeetingController {
     init() {
         transcriber = LocalTranscriber(models: models)
         AppSettings.registerDefaults()
-        try? Vault.configured?.ensureDefaultTemplate()
+        try? TakkuFolder.ensureDefaultTemplate()
         processor = MeetingProcessor(transcriber: transcriber, diarizer: diarizer)
         templateName = AppSettings.defaultTemplate
         Notifications.shared.configure()

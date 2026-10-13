@@ -1,6 +1,6 @@
 import Foundation
 
-/// A file in the Vault that defines the structure and instructions of the Summary for a kind of Meeting.
+/// A file in `~/.takku/templates` that defines the structure and instructions of the Summary for a kind of Meeting.
 public struct Template: Equatable, Sendable {
     public let name: String
     /// Language code that forces the Summary language (`it`, `en`, `fr`…), `nil` to use the Meeting's.
@@ -8,7 +8,7 @@ public struct Template: Equatable, Sendable {
     /// Free-form instructions and structure, passed to the model as they are.
     public let body: String
 
-    /// The Template Takku creates in the Vault when the Templates folder is empty: notes by
+    /// The Template Takku creates when the Templates folder is empty: notes by
     /// topic, in Meeting order, and Next steps at the end (like Granola).
     public static let defaultName = "Notes"
     public static let defaultFileContent = """

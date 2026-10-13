@@ -49,9 +49,9 @@ struct SettingsView: View {
                     }
                 }
 
-                TemplatesSection(defaultTemplate: $defaultTemplate, vaultPath: vaultPath)
+                TemplatesSection(defaultTemplate: $defaultTemplate)
 
-                VocabularySection(vaultPath: vaultPath)
+                VocabularySection()
 
                 RecordingsSection()
 

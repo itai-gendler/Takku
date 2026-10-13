@@ -64,11 +64,11 @@ _Avoid_: summary file, document
 The part of the Meeting note that Takku may rewrite. Everything else belongs to the user.
 
 **Template** (`Template`):
-A file in the Vault that defines the structure and instructions of the Summary for a kind of Meeting.
+A file in `~/.takku/templates/` that defines the structure and instructions of the Summary for a kind of Meeting.
 _Avoid_: model (ambiguous with the AI model), prompt
 
 **Vocabulary** (`Vocabulary`):
-A file in the Vault listing the terms (names, acronyms, technical words) that speech recognition tends to get wrong. Each entry is the correct term, optionally with the variants usually heard instead and a short description of what it is. It applies to every Meeting.
+A file in `~/.takku/` listing the terms (names, acronyms, technical words) that speech recognition tends to get wrong. Each entry is the correct term, optionally with the variants usually heard instead and a short description of what it is. It applies to every Meeting.
 _Avoid_: dictionary, glossary
 
 **Regeneration** (`Regeneration`):
@@ -88,4 +88,4 @@ A named configuration of a Provider (endpoint, credentials, model) that the user
 _Avoid_: preset, account
 
 **Vault** (`Vault`):
-The Obsidian folder where Takku writes Meeting notes and Transcripts and reads Templates from.
+The Obsidian folder where Takku writes Meeting notes and Transcripts.

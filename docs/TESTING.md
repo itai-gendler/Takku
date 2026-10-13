@@ -41,7 +41,8 @@ Before starting: Takku running from the menu bar (notebook icon), Vault and a Su
 - [x] **Two Meetings in a row**: stop the first one and start the second right away → the menu says "Processing… (1 more queued)", then two notifications.
 - [x] **Recent meetings → Open note**: opens the right note, even if you renamed or moved it.
 - [ ] **Meeting deleted from the Vault**: delete a Meeting note in Obsidian, open the menu → *Recent meetings* no longer lists it (an older Meeting takes its place); rename a note → the menu shows the new name.
-- [x] **New Template**: Settings → *Templates* → type a name → *Create and open* → it opens in Obsidian; change instructions and sections and save.
+- [ ] **Templates folder**: move `~/.takku` to the Trash, launch Takku → `~/.takku/templates/Notes.md` is back and is the default Template, also with no Vault chosen.
+- [ ] **New Template**: Settings → *Templates* → type a name → *Create* → the row appears, nothing opens; its *Edit With* → an editor → `~/.takku/templates/<name>.md` opens there; change instructions and sections and save.
 - [x] **Default Template**: choose the new Template as default → the next Meeting starts with it.
 - [x] **Delete Template**: *Delete* → confirm → the row disappears with no message, the file is in the Mac Trash; if it was the default, Notes is back. Notes has no *Delete*.
 - [ ] **Retry with another Template**: choose another Template in the menu → *Recent meetings* → a Meeting → *Retry* → the Summary follows the new Template.
@@ -65,13 +66,13 @@ Before starting: Takku running from the menu bar (notebook icon), Vault and a Su
 
 ## Vocabulary
 
-- [ ] **Open Vocabulary**: Settings → *Vocabulary* → *Open Vocabulary* → `Meetings/_Vocabulary.md` is created with the explanation text and opens in Obsidian; *Entries* says 0. Add `- Scaleway = scale uai | our EU cloud provider`, go back to the Settings window → *Entries* says 1.
+- [ ] **Edit Vocabulary With**: Settings → *Vocabulary* → *Edit Vocabulary With* → the menu lists only text editors with their icon (no Safari, Pages or Numbers), the default for Markdown first with *(default)*; choose one → `~/.takku/vocabulary.md` is created with the explanation text and opens in that app; the row says *No terms yet*. Add `- Scaleway = scale uai | our EU cloud provider`, go back to the Settings window → *1 term* with *Scaleway* below; with more than four terms the first four and *and N more*.
 - [ ] **Variants in the Transcript**: add a term with a variant Parakeet really gets wrong in your voice, record a short Meeting saying it → in the Transcript file the term is written right; the Meeting note's Summary writes it right too.
 - [ ] **Terms in the Summary**: say a term that is in the Vocabulary but write no variant for it, with recognition getting it wrong → the Summary spells the term right when the context makes it clear, and leaves other doubtful words alone.
 - [ ] **Short terms**: a term that sounds like common words (like "Takku" next to "meno", "sono") → ordinary sentences with "meno" or "sono" are not changed, in the Transcript or in the Summary.
 - [ ] **Retry with a new variant**: add a variant for a word that is wrong in an older Meeting still having its audio → *Retry* → the Transcript file has the term. Without the audio, *Retry* does not touch the Transcript text.
 - [ ] **Transcript only**: *Summary Profile* → *Transcript*, record a Meeting saying a word that has a variant → the variant is replaced in the Transcript even with no Summary.
-- [ ] **No Vocabulary file**: delete `_Vocabulary.md` → Meetings are processed as before, *Entries* says 0.
+- [ ] **No Vocabulary file**: delete `~/.takku/vocabulary.md` → Meetings are processed as before, *No terms yet*.
 
 ## 4. Edge cases
 
@@ -92,7 +93,7 @@ Before starting: Takku running from the menu bar (notebook icon), Vault and a Su
 - [ ] **Marks**: ⌃⌥⌘M during a Meeting from another app → the dot becomes a star for a second, the menu shows "Marked moments: 1"; after Processing the paragraph just before has a ⭐ and the Summary covers it.
 - [ ] **Call suggestions**: idle, join a Meet, Zoom or Teams call → within 20 seconds "Looks like a call in <app>" with *Start meeting*, which starts. Leave the call → within 35 seconds "The call seems over" with *Stop meeting*. A 5-second dictation with another app suggests nothing. Turn it off in Settings → no notifications.
 - [ ] **Update check**: with `MARKETING_VERSION` lowered in a Debug build, the menu shows "Takku <latest> is available…", which opens the release page.
-- [ ] **Welcome window**: in a Debug build `open Takku.app --args -showWelcome YES` → *Welcome to Takku* opens in front (on a Mac with no Vault, also without the argument, and the menu has *Set up Takku…*). *Choose…* a folder (it is saved for real: choose your Vault again afterwards) → the path appears, step 1 gets a check and `Meetings/_Templates/Notes.md` appears. With `tccutil reset Microphone app.takku.takku` and `tccutil reset AudioCapture app.takku.takku` first, *Allow microphone and system audio* → macOS asks for both. *Download and prepare* with the model deleted → percentage, then preparing, then a check. *Done* closes it; launching again with a Vault does not show it.
+- [ ] **Welcome window**: in a Debug build `open Takku.app --args -showWelcome YES` → *Welcome to Takku* opens in front (on a Mac with no Vault, also without the argument, and the menu has *Set up Takku…*). *Choose…* a folder (it is saved for real: choose your Vault again afterwards) → the path appears, step 1 gets a check. With `tccutil reset Microphone app.takku.takku` and `tccutil reset AudioCapture app.takku.takku` first, *Allow microphone and system audio* → macOS asks for both. *Download and prepare* with the model deleted → percentage, then preparing, then a check. *Done* closes it; launching again with a Vault does not show it.
 - [ ] **Report a problem**: menu → *Report a problem…* → Finder shows `Takku report <date>.txt` with version, Mac, models and the logs of the last 3 days (no Profile name or address); the browser opens the GitHub bug form with version, macOS, transcription model and Summary filled in (and *Homebrew* when installed with it).
 - [ ] **Show all in Obsidian**: *Recent meetings* → *Show all in Obsidian…* → Obsidian's search lists the Meeting notes, not the Transcripts.
 
