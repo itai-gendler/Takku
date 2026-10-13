@@ -30,6 +30,26 @@ struct CalendarEventTests {
         #expect(CalendarEvent.inProgress([event("Declined", start: 0, skipped: true)], at: now) == nil)
     }
 
+    @Test("participants written as people call them: no directory capitals, no Surname, Name, no address handles")
+    func participantNames() {
+        #expect(CalendarEvent.participantName(name: "Mario Rossi", email: "x@example.com") == "Mario Rossi")
+        #expect(CalendarEvent.participantName(name: "ROSSI, MARIO", email: nil) == "Mario Rossi")
+        #expect(CalendarEvent.participantName(name: "Rossi, Mario", email: nil) == "Mario Rossi")
+        #expect(CalendarEvent.participantName(name: "D'ANGELO ANNA", email: nil) == "D'Angelo Anna")
+        #expect(CalendarEvent.participantName(name: "Anna McBride", email: nil) == "Anna McBride")
+        #expect(CalendarEvent.participantName(name: "mario.rossi", email: "mario.rossi@example.com") == "Mario Rossi")
+        #expect(CalendarEvent.participantName(name: nil, email: "mario.rossi@example.com") == "Mario Rossi")
+        #expect(CalendarEvent.participantName(name: "", email: "M.Rossi@example.com") == "M. Rossi")
+        #expect(CalendarEvent.participantName(name: "mario.rossi@example.com", email: nil) == "Mario Rossi")
+    }
+
+    @Test("an address without a name in it stays whole; nothing at all gives nil")
+    func participantAddresses() {
+        #expect(CalendarEvent.participantName(name: nil, email: "mrossi@example.com") == "mrossi@example.com")
+        #expect(CalendarEvent.participantName(name: nil, email: "team.42@example.com") == "team.42@example.com")
+        #expect(CalendarEvent.participantName(name: " ", email: nil) == nil)
+    }
+
     @Test("among several, one with participants first, then the start closest to now")
     func choice() {
         let focus = event("Focus time", start: -1, length: 120, participants: [])

@@ -266,7 +266,7 @@ A Track that records nothing is noticed during the Meeting, not after it.
 - At the start Takku looks, among the events of all calendars, for the one in progress: not all-day, not cancelled, not declined by the user, starting at most 10 minutes from now and not yet ended. Among several, the one that has attendees, then the one whose start is closest to now. Reading the calendar never delays the start of the recording.
 - With an event:
   - the Meeting note is named after it: `2026-10-04 1430 - Weekly sync.md`. Not having the provisional name, it is not renamed with the generated title (the title call is skipped);
-  - its frontmatter gets `participants`, the attendees except the user and except rooms and resources, by name or, without one, by email, written only at creation like `date` and `tags` (the user can correct it):
+  - its frontmatter gets `participants`, the attendees except the user and except rooms and resources, by name or, without one, by email, made readable (`ROSSI, MARIO`, `Rossi, Mario` and `mario.rossi` or `mario.rossi@…` become `Mario Rossi`, `m.rossi@…` becomes `M. Rossi`; a name in mixed case stays as it is, an address without two words in it stays whole), written only at creation like `date` and `tags` (the user can correct it):
     ```yaml
     participants:
       - "Mario Rossi"

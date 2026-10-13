@@ -43,13 +43,16 @@ enum MeetingCalendar {
         return CalendarEvent.inProgress(events, at: now)
     }
 
-    /// The name of a person invited, or their email without one; `nil` for the user, rooms and resources.
+    /// The name of a person invited, or their email without one, made readable
+    /// (`CalendarEvent.participantName`); `nil` for the user, rooms and resources.
     private static func participantName(_ participant: EKParticipant) -> String? {
         guard !participant.isCurrentUser, participant.participantType != .room,
               participant.participantType != .resource
         else { return nil }
-        if let name = participant.name?.trimmingCharacters(in: .whitespaces), !name.isEmpty { return name }
         let address = participant.url.absoluteString
-        return address.hasPrefix("mailto:") ? String(address.dropFirst("mailto:".count)) : nil
+        return CalendarEvent.participantName(
+            name: participant.name,
+            email: address.hasPrefix("mailto:") ? String(address.dropFirst("mailto:".count)) : nil
+        )
     }
 }
