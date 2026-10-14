@@ -127,7 +127,9 @@ A Hook takes each meeting somewhere else once Takku is done with it: Notion, Con
 git add -A && git commit -qm "Meeting: $(basename "$1" .md)"
 ```
 
-How to write one, and a ready-made Hook that copies every meeting to Notion ([`examples/hooks/notion.py`](examples/hooks/notion.py)): **[takku.app/hooks](https://takku.app/hooks)**.
+`after-processing` is a file, not a folder, with no extension and made executable (`chmod +x`). It can be written in any language: its first line, `#!/bin/sh`, `#!/usr/bin/env python3` and so on, tells macOS which program runs it. Takku runs only that file; for more than one Hook, keep each in its own file in `~/.takku/hooks/` and make `after-processing` call them in turn.
+
+How to write one, how to run several, and a ready-made Hook that copies every meeting to Notion ([`examples/hooks/notion.py`](examples/hooks/notion.py)): **[takku.app/hooks](https://takku.app/hooks)**.
 
 ### Where your data is
 
