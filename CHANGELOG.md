@@ -1,28 +1,117 @@
 # Changelog
 
-What changes in each version of Takku, starting from 1.2.0. Downloads and earlier versions: [GitHub Releases](https://github.com/mameli/Takku/releases).
+What changes in each version of Takku, newest first. **Before you update** lists what needs your attention, when there is something. Downloads: [GitHub Releases](https://github.com/mameli/Takku/releases).
+
+Takku was called Steno up to 0.2.1.
 
 ## Unreleased
 
 ### Removed: Steno support
 
-Takku was called Steno until 0.2.1 (October 2026). Until 1.2.0 it brought over what Steno had left on the Mac and read the notes Steno wrote; from this version it does neither. If you never used Steno, nothing changes for you.
+Up to 1.2.0 Takku brought over what Steno had left on the Mac and read the notes Steno wrote. It no longer does either. If you never used Steno, nothing changes for you.
 
-**What no longer works**
+**Before you update**
 
-- **Settings, Recordings, models and API keys of Steno are not moved to Takku any more.** If Steno is still installed, open Takku 1.2.0 once before updating: it moves everything. Otherwise set Takku up again: choose the vault, add your Summary Profiles with their API keys, and download the transcription model. Steno's data folder, `~/Library/Application Support/Steno`, can then be deleted.
-- **Notes written by Steno are not recognised.** A note or Transcript with `steno_id` in its frontmatter, or a summary between `%% steno:start %%` and `%% steno:end %%`, is no longer a Takku meeting: *Retry* cannot find it, it is missing from *Recent meetings → Show all in Obsidian…*, and a Hook is never run on it. Notes that Takku has rewritten at least once (after a Retry) already use `takku_id` and are fine.
+- **Steno's settings, Recordings, models and API keys are no longer moved to Takku.** If Steno is still installed, open Takku 1.2.0 once before updating: it moves everything. Otherwise set Takku up again: choose the vault, add your Summary Profiles with their API keys, and download the transcription model. Steno's data folder, `~/Library/Application Support/Steno`, can then be deleted.
+- **Notes written by Steno are no longer recognised.** A note or Transcript with `steno_id` in its frontmatter, or a summary between `%% steno:start %%` and `%% steno:end %%`, is no longer a Takku meeting: *Retry* cannot find it, it is missing from *Recent meetings → Show all in Obsidian…*, and the Hook is never run on it. Notes that Takku has rewritten at least once (after a Retry) already use `takku_id` and are fine.
 
-**Converting old notes**
+  To convert the others, run this in your vault folder. It changes only the `steno_id:` lines and the two markers, in the files that have them. Back up the vault first, or commit it if it is a git repository.
 
-Run this in your vault folder. It changes only the `steno_id:` lines and the two markers, in the files that have them; back up the vault first, or commit it if it is a git repository.
+  ```sh
+  grep -rl --null --include='*.md' -e '^steno_id:' -e '^%% steno:' . | xargs -0 sed -i '' -e 's/^steno_id:/takku_id:/' -e 's/^%% steno:start %%$/%% takku:start %%/' -e 's/^%% steno:end %%$/%% takku:end %%/'
+  ```
 
-```sh
-grep -rl --null --include='*.md' -e '^steno_id:' -e '^%% steno:' . | xargs -0 sed -i '' -e 's/^steno_id:/takku_id:/' -e 's/^%% steno:start %%$/%% takku:start %%/' -e 's/^%% steno:end %%$/%% takku:end %%/'
-```
-
-The meetings are then recognised again as they were.
-
-## 1.2.0
+## 1.2.0 (2026-10-14)
 
 - **Hook**: an executable at `~/.takku/hooks/after-processing` runs when each meeting is ready, and again after every successful Retry, with the paths of the meeting note and of the Transcript. Send meetings to Notion, Confluence, git or anywhere else. Guide and a ready-made Notion hook: [takku.app/hooks](https://takku.app/hooks).
+
+## 1.1.0 (2026-10-13)
+
+- **Templates and Vocabulary live in `~/.takku/`**, outside the vault and the same whatever the vault: `~/.takku/templates/` and `~/.takku/vocabulary.md`.
+- Edit them from Settings with *Edit With*: a menu of the text editors on your Mac, your default one first. The Vocabulary row shows how many terms Takku read.
+- Participants from the calendar are written readably: `ROSSI, MARIO` and `mario.rossi@…` become `Mario Rossi`.
+
+**Before you update**
+
+- Your Templates and Vocabulary are **not moved automatically**. Move them, or Takku uses its default Template and an empty Vocabulary:
+  ```sh
+  mkdir -p ~/.takku/templates
+  mv <vault>/Meetings/_Templates/*.md ~/.takku/templates/
+  mv <vault>/Meetings/_Vocabulary.md ~/.takku/vocabulary.md
+  ```
+
+## 1.0.1 (2026-10-11)
+
+- The welcome window comes back in front after the microphone and system audio prompts.
+- *Add a Profile in Settings…* opens Settings on the Summary Profiles, with a new Profile ready to fill in.
+- **Call suggestions are off by default.** Turn on *Suggest recording when a call starts* in *Settings → General* to get them.
+
+## 1.0.0 (2026-10-11)
+
+- **Signed with an Apple Developer ID and notarized by Apple**: Takku opens like any other app, with no more *Open Anyway*.
+- **Welcome window** at the first launch: permissions, vault, transcription model, summary and Open at login, step by step. *Set up Takku…* in the menu opens it again until a vault is chosen.
+
+**Before you update**
+
+- macOS treats the newly signed app as a new app once: it asks again for the microphone, the system audio and the calendars, and for your password to let Takku read the API keys you saved (choose *Always Allow*). Turn *Open at login* on again if you used it.
+
+## 0.3.1 (2026-10-10)
+
+- **Report a problem…** in the menu writes a report with Takku's version, your Mac, the models and the logs of the last 3 days, and opens a bug report on GitHub with those fields filled in. Nothing is sent by itself.
+
+## 0.3.0 (2026-10-09)
+
+- **Steno is now Takku**, from *taccuino*, the notebook in its icon. New app, bundle `app.takku.takku`, Homebrew cask `mameli/takku/takku` (`brew upgrade` replaces Steno with Takku). At the first launch Takku brought over Steno's settings, Profiles, Recordings, models and API keys.
+
+**Before you update**
+
+- The permissions (microphone, system audio, calendars, notifications) and *Open at login* must be granted again: macOS ties them to the app.
+
+## 0.2.1 (2026-10-09)
+
+- The ⭐ of a moment marked with ⌃⌥⌘M no longer shows up in the Summary.
+
+## 0.2.0 (2026-10-09)
+
+- **Calendar** (optional, *Settings → General*): a meeting started during an event gets a note named after it, with the invited people in `participants`, which help the Summary name the Speakers.
+- **Speaker names**: write `speakers: - Speaker 1 = Mario Rossi` in the note's frontmatter and Retry: the Transcript shows *Mario Rossi (Speaker 1)* and the Summary uses the name.
+- **Mark a moment** with ⌃⌥⌘M while recording: the passage gets a ⭐ in the Transcript and priority in the Summary.
+- **Call suggestions**: a notification offers to start when a call app keeps the microphone, and to stop when it lets it go.
+- **Silent Track warning**: the menu and a notification say when nothing is coming from the microphone or from the call.
+- **Meeting languages**: 25 European languages in *Settings → Transcription*. One ticked is forced, several are detected.
+- **Update check**: once a day Takku asks GitHub for the latest version and shows it in the menu. It can be turned off.
+- **Recent meetings → Show all in Obsidian…**
+
+## 0.1.5 (2026-10-09)
+
+- The Summary calls you by your name instead of "Me". An unnamed participant appears as "Speaker N" only as who takes on an action.
+
+## 0.1.4 (2026-10-07)
+
+- **Speakers**: the Transcript tells the other participants apart (Speaker 1, Speaker 2…), and the Summary names them when the call makes clear who they are.
+- The others' voice left in the microphone by echo cancellation no longer shows up in the Transcript as your words.
+
+## 0.1.3 (2026-10-06)
+
+- Every point of the Summary cites the time in the Transcript, and a Summary of a cut Transcript stops where the Transcript stops.
+
+## 0.1.2 (2026-10-06)
+
+- Notifications read the permission each time, so turning them on in System Settings works without restarting.
+
+## 0.1.1 (2026-10-05)
+
+- Install with Homebrew.
+- Hardened Runtime: another process can no longer inject code into the app to record through its microphone and system audio permissions.
+
+## 0.1.0 (2026-10-05)
+
+First release.
+
+- Records both sides of a call: the microphone, with echo cancellation, and the system audio.
+- Transcribes on the Mac with Whisper (Large v3 Turbo, its full version, Small) or Parakeet v3, chosen and downloaded in Settings.
+- Writes one note per meeting in the Obsidian vault, opened at the start for your personal notes, with the Summary at the top and the Transcript in its own file.
+- Summary written by a provider you choose through any OpenAI-compatible API, with Profiles and keys in the Keychain, or no Summary at all.
+- Templates for the Summary, a Vocabulary for names and jargon, Retry with another Template or Profile.
+- Audio kept for 7 days, then deleted; Retry rebuilds the Summary from the Transcript in the vault.
+- Global shortcut ⌃⌥⌘R, Open at login.
