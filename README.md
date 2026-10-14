@@ -119,19 +119,52 @@ The variants are replaced with the term in the Transcript, as whole words: do no
 
 ### Hook
 
-To send meetings somewhere else (Confluence, Notion, a git commit of your vault…), put an executable script at `~/.takku/hooks/after-processing`. Takku runs it when a meeting is ready, and again after every successful Retry, with two arguments: the path of the meeting note and the path of the Transcript.
+A Hook takes each meeting somewhere else once Takku is done with it: Notion, Confluence, a git commit of your vault, anything a script can do. Takku has no integrations of its own: it runs your script and hands it the files.
+
+Put an executable at `~/.takku/hooks/after-processing`. When a meeting is ready, and again after every successful Retry, Takku runs it with two arguments: the path of the meeting note and the path of the Transcript. The simplest Hook, committing the vault to git:
 
 ```sh
 #!/bin/sh
-# $1: the meeting note, $2: the Transcript
-cd "$(dirname "$1")/.." && git add -A && git commit -qm "Meeting: $(basename "$1" .md)"
+# $1: the meeting note, $2: the Transcript. The Hook runs in the vault folder.
+git add -A && git commit -qm "Meeting: $(basename "$1" .md)"
 ```
 
-- Make it executable: `chmod +x ~/.takku/hooks/after-processing`. Without the file nothing happens; there is no setting.
+```sh
+chmod +x ~/.takku/hooks/after-processing
+```
+
+- Without the file nothing happens; there is no setting to turn on.
 - It runs in your vault folder, with Homebrew's folders in `PATH`, and is stopped after 5 minutes, with anything it started. It does not run when Processing fails.
-- The note's frontmatter has `takku_id`: use it to update what the script created the first time instead of creating it again, since a Retry runs the Hook again.
-- Each run is logged in `~/.takku/hooks/after-processing.log`, with the command to rerun it from the Terminal. If the script fails, a notification says so; the meeting is not affected.
+- A Retry runs it again: update what the first run created instead of creating it twice. The note's frontmatter has a `takku_id` that never changes, for that.
+- Each run is logged in `~/.takku/hooks/after-processing.log`, with the command to run it again from the Terminal. If the script fails, a notification says so; the meeting is not affected.
+- To run it by hand on any meeting, call it with the note's path: it is just a script.
+- One Hook can do several things: make `after-processing` call your other scripts, and decide in it which meetings go where (for example only the notes you tagged `notion`: `grep -q '^tags:.*notion' "$1"`).
 - The script can use Takku's permissions (microphone, system audio, calendars), as macOS sees Takku as the app running it: put there only code you trust.
+- Where the script sends your meetings is up to you: Takku does not check it.
+
+#### Example: every meeting in Notion
+
+[`examples/hooks/notion.py`](examples/hooks/notion.py) copies each meeting note (Summary and personal notes, without the Transcript) to a Notion page under a page you choose. A Retry updates the same page. It needs Python 3, from Homebrew or the Xcode Command Line Tools.
+
+1. **Create a connection.** In Notion's [developer portal](https://app.notion.com/developers/connections) → *Internal connections* → *Create a new connection* (you need to be a workspace owner), choose your workspace, turn on read, update and insert content in *Configuration*, and copy its API token. A connection only sees the pages you share with it, which is what you want for a script that runs on its own.
+2. **Save the token in the Keychain** (paste it when asked; it stays out of your shell history and of the script):
+   ```sh
+   security add-generic-password -a "$USER" -s takku-notion -w
+   ```
+3. **Choose the page** the meetings go under. In its ••• menu → *Connections* → *Add connection*, pick yours. Copy the page's link: its ID is the 32 characters at the end.
+4. **Install the script** and write the page ID in `PARENT_PAGE_ID` at its top:
+   ```sh
+   mkdir -p ~/.takku/hooks && curl -fsSL https://raw.githubusercontent.com/mameli/Takku/main/examples/hooks/notion.py -o ~/.takku/hooks/after-processing && chmod +x ~/.takku/hooks/after-processing
+   ```
+   ```sh
+   open -t ~/.takku/hooks/after-processing
+   ```
+5. **Try it** on a meeting you already have, then look for the page in Notion:
+   ```sh
+   ~/.takku/hooks/after-processing "/path/to/your/vault/Meetings/<a meeting>.md"
+   ```
+
+From then on every meeting goes to Notion when it is ready. The script remembers which page belongs to which meeting in `~/.takku/hooks/notion-pages.json`; delete a line there to have that meeting copied to a new page.
 
 ### Where your data is
 
