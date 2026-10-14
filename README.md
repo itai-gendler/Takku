@@ -23,6 +23,7 @@ It was built as an alternative to Granola for people whose company does not allo
 - **Writes Markdown into Obsidian**: one note per meeting, opened when the meeting starts so you can take notes, plus a separate Transcript file. Your own notes are kept and used to steer the Summary.
 - **Templates are Markdown files**: write the structure and instructions of the Summary in `~/.takku/templates/`, with any editor.
 - **A Vocabulary for your jargon**: names and technical terms that recognition gets wrong are fixed in the Transcript and spelled right in the Summary.
+- **Hands each meeting to your own script** (optional): a Hook sends it to Notion, Confluence, git or anywhere else when it is ready.
 
 https://github.com/user-attachments/assets/f74b6fe5-6423-46f6-9194-a4f1c48a4579
 
@@ -76,7 +77,7 @@ At the first launch a *Welcome to Takku* window walks you through these steps (u
 
 ## Use
 
-- **Start and stop** a meeting from the menu bar or with **⌃⌥⌘R** from any app. While recording the icon is a red dot and the menu shows the duration. If a call app keeps the microphone for 15 seconds, a notification offers to start; when it lets the microphone go, another offers to stop (*Settings → General* to turn them off).
+- **Start and stop** a meeting from the menu bar or with **⌃⌥⌘R** from any app. While recording the icon is a red dot and the menu shows the duration. With *Suggest recording when a call starts* on (*Settings → General*, off by default), a notification offers to start when a call app keeps the microphone for 15 seconds, and another offers to stop when it lets the microphone go.
 - **Mark a moment** with **⌃⌥⌘M** while recording: the dot turns into a star for a second, the passage gets a ⭐ in the Transcript and the Summary gives it priority.
 - If Takku hears nothing from the microphone or from the call for 2 minutes, the menu says so; if it has heard nothing since the start, a notification tells you what to check.
 - The meeting note opens in Obsidian: write your own notes under **Personal notes**. Takku never touches them.
