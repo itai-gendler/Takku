@@ -1,6 +1,6 @@
 # Takku
 
-Personal macOS app that records meetings, produces a Transcript and a Summary with providers chosen by the user (local or hosted in the EU) and writes the result into an Obsidian Vault. An alternative to Granola that complies with the company policy on EU data residency.
+Personal macOS app that records meetings, produces a Transcript and a Summary with providers chosen by the user (preferably local or hosted in the EU) and writes the result into an Obsidian Vault. An alternative to Granola for those whose company policy requires EU data residency.
 
 ## Language
 
@@ -80,7 +80,7 @@ Producing a new Summary for a Meeting already processed from its Transcript in t
 What a Provider is used for: **transcription** or **summary**. In v1 only the summary Role is configurable; transcription is always local.
 
 **Provider** (`Provider`):
-A local or remote service that performs a Role. It must process data inside the EU.
+A local or remote service that performs a Role, chosen by the user: preferably local or processing data inside the EU.
 _Avoid_: backend, API, vendor
 
 **Provider profile** (`ProviderProfile`):
@@ -89,3 +89,7 @@ _Avoid_: preset, account
 
 **Vault** (`Vault`):
 The Obsidian folder where Takku writes Meeting notes and Transcripts.
+
+**Hook** (`Hook`):
+An executable written by the user, in `~/.takku/hooks/`, that Takku runs when a Meeting completes Processing, to take the Meeting note and the Transcript elsewhere.
+_Avoid_: plugin, integration, webhook

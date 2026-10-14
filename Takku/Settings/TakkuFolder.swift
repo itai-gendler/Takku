@@ -3,11 +3,12 @@ import TakkuCore
 
 /// `~/.takku`, the global configuration: the Templates (`templates/`) and the Vocabulary
 /// (`vocabulary.md`). Plain Markdown files, the same whatever the Vault, edited with the
-/// user's editor (*Edit With* in Settings).
+/// user's editor (*Edit With* in Settings). Also the user's Hook (`hooks/`), never created by Takku.
 enum TakkuFolder {
     static let root = URL.homeDirectory.appending(path: ".takku", directoryHint: .isDirectory)
     static var templatesFolder: URL { root.appending(path: "templates", directoryHint: .isDirectory) }
     static var vocabularyURL: URL { root.appending(path: "vocabulary.md") }
+    static var hooksFolder: URL { root.appending(path: "hooks", directoryHint: .isDirectory) }
 
     // MARK: - Templates
 

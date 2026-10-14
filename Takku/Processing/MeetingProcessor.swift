@@ -291,6 +291,11 @@ final class MeetingProcessor {
             hasSummary: record.summaryProfile != nil, problems: problems, warnings: warnings
         )
         save(record)
+        // After every completed Processing, Retry included, so the Hook can update what it sent.
+        if problems.isEmpty, HookRunner.isInstalled, let vault = Vault.configured, let noteURL = record.noteURL,
+           let transcriptURL = vault.findTranscript(takkuID: record.takkuID) {
+            HookRunner.shared.run(note: noteURL, transcript: transcriptURL, vault: vault.root)
+        }
     }
 
     // MARK: - Vault and Summary

@@ -4,7 +4,7 @@ Terms in **bold** are defined in [CONTEXT.md](../CONTEXT.md). Architecture decis
 
 ## Goal
 
-Record a **Meeting** on the Mac, produce its **Transcript** and **Summary** with **Providers** chosen by the user (local or in the EU) and write everything into the Obsidian **Vault**, without data leaving the EU ([ADR 0001](adr/0001-data-stays-in-the-eu.md)).
+Record a **Meeting** on the Mac, produce its **Transcript** and **Summary** with **Providers** chosen by the user and write everything into the Obsidian **Vault**. Data stays local or in the EU by preference; where a Meeting goes is the user's choice ([ADR 0001](adr/0001-eu-by-preference.md)).
 
 Personal use, one machine (M3 Pro, 18 GB, macOS 26). Meetings in Italian or English, one language per Meeting.
 
@@ -241,7 +241,7 @@ Every phase closes with a concrete check.
 
 ## v2
 
-What comes after v1, in implementation order. Every item keeps ADR 0001: nothing about a Meeting leaves the Mac except towards the Summary Provider.
+What comes after v1, in implementation order. Every item keeps ADR 0001: nothing about a Meeting leaves the Mac except towards the Summary Provider and the user's own Hook.
 
 ### Silent Track warning
 
@@ -305,6 +305,21 @@ When the Summary cannot tell who a Speaker is, the user can say it:
 - **Start**: when idle and another app has been using the microphone for 15 seconds without a break, one notification per stretch of use: "Looks like a call in Zoom" · "Start recording?", with a *Start meeting* button; clicking the notification starts too. Dictation apps used for a few seconds do not trigger it.
 - **End**: while recording, if at some point another app was using the microphone and now none has been for 30 seconds, one notification: "The call seems over" · "Stop recording?", with a *Stop meeting* button. It comes again only if an app takes the microphone back and releases it again. Takku never stops by itself.
 - These notifications are not sent while the corresponding action makes no sense (start while recording, stop while idle); a stale button does nothing.
+
+### Hook
+
+A Meeting can be taken elsewhere (Confluence, Notion, a git commit of the Vault) by a script of the user, without Takku knowing the service ([ADR 0007](adr/0007-hook-after-processing.md)).
+
+- **Where**: `~/.takku/hooks/after-processing`, a single executable in any language. No setting: if the file exists, Takku runs it; if it does not, nothing happens. Several destinations are chained inside the script.
+- **When**: after every Processing that ends *completed*: with no problems, warnings allowed (e.g. an incomplete Transcript), with or without a Summary (*Transcript* as Profile). That includes a successful Retry, with the audio or as a Regeneration, so the Hook runs again after every Retry. It does not run when Processing fails, including when only the Summary fails (the note and the Transcript are written, the Meeting is *failed*), nor without a Vault.
+- **Arguments**: the absolute paths of the Meeting note and of the Transcript, in this order. Nothing else: no stdin (`/dev/null`), no payload, no environment variables of its own besides `PATH` (below). The note's frontmatter has the rest; the script uses `takku_id` to update what it created at an earlier run instead of creating it again.
+- **Execution**: the Hooks run one at a time in a queue of their own, separate from Processing: a slow Hook does not hold up the next Meeting, and two runs for the same Meeting (a Retry while the Hook is still running) never overlap; the running one is not cancelled. Working directory: the Vault. `PATH`: Takku's, plus `/opt/homebrew/bin` and `/usr/local/bin` (an app started from the Dock does not have Homebrew's). After 5 minutes the Hook is terminated, together with the processes it started (its process group): SIGTERM, then SIGKILL 5 seconds later for whatever is still running.
+- **Outcome**: exit code 0 is silent. A non-zero exit code, the timeout, or a file that exists but is not executable send one notification, "Hook failed" · "<note name>: see ~/.takku/hooks/after-processing.log". The Meeting stays *completed*; there is no automatic retry.
+- **Log**: `~/.takku/hooks/after-processing.log`. Each run appends the date, the note name, the command to rerun it by hand from the Terminal (both paths quoted), the exit code (or *timeout*) and stdout and stderr. A file that is not executable gets "not executable: run `chmod +x ~/.takku/hooks/after-processing`". Past 1 MB, only the last half is kept.
+- **Rerunning** a failed Hook is done by hand, with the command from the log: a Retry would also regenerate the Summary.
+- **Permissions**: the Hook can use Takku's permissions (microphone, system audio, calendars), since macOS treats Takku as its responsible process. Accepted, see ADR 0007.
+- **Where the data goes**: the Hook can send a Meeting anywhere, outside the EU too. As for Providers, it is the user's choice. The README lists the Hook in "Where your data is".
+- No Settings section and no menu item: the Hook is documented in the README and in the guide on the site.
 
 ### Smaller changes
 

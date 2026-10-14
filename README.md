@@ -117,6 +117,22 @@ Names, acronyms and technical words that recognition gets wrong go in `~/.takku/
 
 The variants are replaced with the term in the Transcript, as whole words: do not list a variant that is also an ordinary word, or it is replaced everywhere. All the terms are passed to the model, which spells them right in the Summary when the context makes it clear. Changes count from the next meeting, or from a Retry while the audio of that meeting is kept.
 
+### Hook
+
+To send meetings somewhere else (Confluence, Notion, a git commit of your vault…), put an executable script at `~/.takku/hooks/after-processing`. Takku runs it when a meeting is ready, and again after every successful Retry, with two arguments: the path of the meeting note and the path of the Transcript.
+
+```sh
+#!/bin/sh
+# $1: the meeting note, $2: the Transcript
+cd "$(dirname "$1")/.." && git add -A && git commit -qm "Meeting: $(basename "$1" .md)"
+```
+
+- Make it executable: `chmod +x ~/.takku/hooks/after-processing`. Without the file nothing happens; there is no setting.
+- It runs in your vault folder, with Homebrew's folders in `PATH`, and is stopped after 5 minutes, with anything it started. It does not run when Processing fails.
+- The note's frontmatter has `takku_id`: use it to update what the script created the first time instead of creating it again, since a Retry runs the Hook again.
+- Each run is logged in `~/.takku/hooks/after-processing.log`, with the command to rerun it from the Terminal. If the script fails, a notification says so; the meeting is not affected.
+- The script can use Takku's permissions (microphone, system audio, calendars), as macOS sees Takku as the app running it: put there only code you trust.
+
 ### Where your data is
 
 - **Notes and Transcripts**: in your vault, as plain Markdown.
@@ -125,6 +141,7 @@ The variants are replaced with the term in the Transcript, as whole words: do no
 - **API keys**: in the macOS Keychain.
 - **Transcription model**: in `~/Library/Application Support/Takku/Models/`, downloaded once from Hugging Face. Only the model is downloaded; no audio or text is sent.
 - **Calendar**: read on the Mac through macOS, only if you turn it on; titles and participants go into the note, and the participants into the Summary request.
+- **Hook**: only if you put one in `~/.takku/hooks/`; it sends the note and the Transcript wherever your script sends them.
 - **Update check**: once a day Takku asks GitHub for the latest version (*Settings → General → Check for updates*). The request carries nothing about you or your meetings.
 
 Recording a meeting may require the consent of the other participants: tell them, and follow the rules that apply to you.

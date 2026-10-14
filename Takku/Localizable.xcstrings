@@ -171,6 +171,16 @@
         }
       }
     },
+    "%@: see ~/.takku/hooks/after-processing.log": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: vedi ~/.takku/hooks/after-processing.log"
+          }
+        }
+      }
+    },
     "%@ (default)": {
       "localizations": {
         "it": {
@@ -558,6 +568,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Nome"
+          }
+        }
+      }
+    },
+    "Hook failed": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hook non riuscito"
           }
         }
       }
