@@ -26,11 +26,6 @@ public struct MeetingNote: Equatable, Sendable {
 
     public static let managedStart = "%% takku:start %%"
     public static let managedEnd = "%% takku:end %%"
-    /// Notes written before the app was renamed from Steno have `steno_id` and `%% steno:… %%`
-    /// markers: they are still read, and replaced with the new ones the next time Takku writes the note.
-    private static let legacyIDKey = "steno_id"
-    private static let legacyManagedStart = "%% steno:start %%"
-    private static let legacyManagedEnd = "%% steno:end %%"
     public static let personalNotesHeading = "## Personal notes"
 
     private enum Marker {
@@ -38,8 +33,8 @@ public struct MeetingNote: Equatable, Sendable {
 
         init?(_ line: String) {
             switch line.trimmingCharacters(in: .whitespaces) {
-            case MeetingNote.managedStart, MeetingNote.legacyManagedStart: self = .start
-            case MeetingNote.managedEnd, MeetingNote.legacyManagedEnd: self = .end
+            case MeetingNote.managedStart: self = .start
+            case MeetingNote.managedEnd: self = .end
             default: return nil
             }
         }
@@ -76,10 +71,10 @@ public struct MeetingNote: Equatable, Sendable {
             """)
     }
 
-    /// The frontmatter `takku_id` (or `steno_id`), `nil` if missing (the same text in the body does not count).
+    /// The frontmatter `takku_id`, `nil` if missing (the same text in the body does not count).
     public var takkuID: UUID? {
         let markdown = MarkdownLines(content)
-        return (markdown.value(TakkuKey.takkuID.rawValue) ?? markdown.value(Self.legacyIDKey)).flatMap(UUID.init(uuidString:))
+        return markdown.value(TakkuKey.takkuID.rawValue).flatMap(UUID.init(uuidString:))
     }
 
     /// The names the user gave the Speakers, from the frontmatter list `speakers`
@@ -206,13 +201,9 @@ public struct MeetingNote: Equatable, Sendable {
     }
 
     /// The lines of a frontmatter entry, including the indented lines of a multi-line value.
-    /// For `takku_id`, a `steno_id` entry if there is no `takku_id`.
     private static func entryLines(_ key: TakkuKey, in markdown: MarkdownLines) -> Range<Int>? {
-        guard let close = markdown.frontmatterClose else { return nil }
-        let keys = key == .takkuID ? [key.rawValue, legacyIDKey] : [key.rawValue]
-        guard let line = keys.lazy.compactMap({ name in
-            markdown.lines[1..<close].firstIndex { $0.hasPrefix("\(name):") }
-        }).first
+        guard let close = markdown.frontmatterClose,
+              let line = markdown.lines[1..<close].firstIndex(where: { $0.hasPrefix("\(key.rawValue):") })
         else { return nil }
         var next = line + 1
         while next < close, markdown.lines[next].first.map({ $0 == " " || $0 == "\t" || $0 == "-" }) == true {

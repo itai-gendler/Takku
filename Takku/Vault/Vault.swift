@@ -142,7 +142,7 @@ struct Vault {
         components.queryItems = [
             // Obsidian knows a Vault by its folder name.
             URLQueryItem(name: "vault", value: root.lastPathComponent),
-            URLQueryItem(name: "query", value: "([takku_id] OR [steno_id]) -path:\"Meetings/Transcripts\""),
+            URLQueryItem(name: "query", value: "[takku_id] -path:\"Meetings/Transcripts\""),
         ]
         NSWorkspace.shared.open(components.url!)
     }

@@ -37,21 +37,7 @@ enum Keychain {
         SecItemDelete(baseQuery(profile) as CFDictionary)
     }
 
-    /// Copies a key saved under another service (Steno's), unless Takku already has one. macOS
-    /// asks the user once whether Takku may read it: the item belongs to Steno.
-    static func copyAPIKey(for profile: UUID, fromService oldService: String) {
-        guard apiKey(for: profile) == nil else { return }
-        var query = baseQuery(profile, service: oldService)
-        query[kSecReturnData as String] = true
-        query[kSecMatchLimit as String] = kSecMatchLimitOne
-        var item: CFTypeRef?
-        guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess,
-              let data = item as? Data, let key = String(data: data, encoding: .utf8)
-        else { return }
-        try? setAPIKey(key, for: profile)
-    }
-
-    private static func baseQuery(_ profile: UUID, service: String = service) -> [String: Any] {
+    private static func baseQuery(_ profile: UUID) -> [String: Any] {
         [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,

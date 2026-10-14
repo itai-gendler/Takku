@@ -6,7 +6,6 @@ struct TakkuApp: App {
     @State private var controller: MeetingController
 
     init() {
-        StenoMigration.runIfNeeded()
         _controller = State(initialValue: MeetingController())
     }
 

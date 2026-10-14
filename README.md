@@ -48,6 +48,8 @@ Takku appears in the menu bar, not in the Dock. Continue with [First setup](#fir
 
 **Updating**: `brew upgrade --cask takku`, or quit Takku and replace it in Applications with the new version. Settings, Profiles, API keys, permissions and downloaded models are kept. `brew uninstall --cask --zap takku` also deletes Takku's settings, Recordings and models; your vault is not touched.
 
+What changes in each version, and what may need your attention when you update: [CHANGELOG.md](CHANGELOG.md).
+
 **Coming from 0.x**: from 1.0 Takku is signed with an Apple Developer ID instead of its own certificate, so macOS treats it as a new app once: it asks again for the microphone, the system audio and the calendars, and for your password to let Takku read the API keys you saved (choose *Always Allow*). Turn *Open at login* on again if you used it.
 
 ## First setup

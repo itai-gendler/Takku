@@ -227,38 +227,6 @@ struct MeetingNoteTests {
         #expect(MeetingNote(content: "takku_id: \(id)\n").takkuID == nil)
     }
 
-    @Test("a note written by Steno is read, and switches to Takku's key and markers when rewritten")
-    func noteWrittenBySteno() {
-        var note = MeetingNote(content: """
-            ---
-            steno_id: 6F1C2A00-0000-4000-8000-000000000001
-            date: 2026-10-04T14:30
-            ---
-            %% steno:start %%
-            Old summary.
-            %% steno:end %%
-
-            Notes.
-            """)
-
-        #expect(note.takkuID == takkuID)
-        #expect(note.personalNotes == "Notes.")
-
-        note.recordFailure(takkuID: takkuID, reason: "No audio.")
-
-        #expect(note.content == """
-            ---
-            takku_id: 6F1C2A00-0000-4000-8000-000000000001
-            date: 2026-10-04T14:30
-            ---
-            %% takku:start %%
-            ⚠️ No audio.
-            %% takku:end %%
-
-            Notes.
-            """)
-    }
-
     @Test("personal notes are the whole body outside the managed section, without the heading")
     func personalNotes() {
         let note = MeetingNote(content: """
