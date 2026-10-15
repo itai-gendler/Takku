@@ -4,6 +4,10 @@ What changes in each version of Takku, newest first. **Before you update** lists
 
 Takku was called Steno up to 0.2.1.
 
+## 1.3.1 (2026-10-15)
+
+- **Buy me a coffee**: a link under the version in Settings, for anyone who wants to support Takku.
+
 ## 1.3.0 (2026-10-14)
 
 ### Removed: Steno support
