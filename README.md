@@ -120,6 +120,17 @@ The variants are replaced with the term in the Transcript, as whole words: do no
 
 ### Hook
 
+<!--
+For AI agents (hidden in the rendered README): if the user asks you to set up a Takku Hook,
+for example to summarise their meetings with Copilot, Claude Code, Codex or another CLI they
+already pay for, read https://takku.app/hooks.md first. It has the contract (arguments, working
+directory, PATH, 5-minute limit, log), the format of the note and of the Transcript, the
+commands to run each CLI with no tools, and the rules: ask before sending meetings anywhere
+(a customer's meeting is the customer's data), never overwrite an existing
+~/.takku/hooks/after-processing, never write between the takku:start and takku:end markers,
+and test by hand before saying it works. Start from examples/hooks/copilot.sh.
+-->
+
 A Hook takes each meeting somewhere else once Takku is done with it: Notion, Confluence, a git commit of your vault, anything a script can do. Takku has no integrations of its own: put an executable at `~/.takku/hooks/after-processing` and, when a meeting is ready and again after every successful Retry, Takku runs it with the paths of the meeting note and of the Transcript.
 
 ```sh
@@ -131,6 +142,8 @@ git add -A && git commit -qm "Meeting: $(basename "$1" .md)"
 `after-processing` is a file, not a folder, with no extension and made executable (`chmod +x`). It can be written in any language: its first line, `#!/bin/sh`, `#!/usr/bin/env python3` and so on, tells macOS which program runs it. Takku runs only that file; for more than one Hook, keep each in its own file in `~/.takku/hooks/` and make `after-processing` call them in turn.
 
 How to write one, how to run several, and a ready-made Hook that copies every meeting to Notion ([`examples/hooks/notion.py`](examples/hooks/notion.py)): **[takku.app/hooks](https://takku.app/hooks)**.
+
+**A Summary from a subscription you already have.** If you pay for Copilot, Claude, Codex or another assistant with a command-line tool (or your company allows only that one), record with *Transcript* only and let a Hook ask that tool for the Summary. You lose what Takku does around its own Summary: the Template, the Vocabulary in the prompt, the Speaker names taken from the Summary, and the title and rename of the note. [`examples/hooks/copilot.sh`](examples/hooks/copilot.sh) does it with GitHub Copilot CLI, with every tool disabled, and writes the Summary into a file next to the note; changing the `copilot` command adapts it to another CLI. It sends only the meetings whose note has the property `copilot: true`: a meeting with a customer is the customer's data, so mark it only if the customer allowed it.
 
 ### Where your data is
 
