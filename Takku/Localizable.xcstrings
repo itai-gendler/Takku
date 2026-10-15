@@ -121,16 +121,6 @@
         }
       }
     },
-    "Buy me a coffee": {
-      "localizations": {
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Offrimi un caffè"
-          }
-        }
-      }
-    },
     "Cannot read the audio of %@.": {
       "localizations": {
         "it": {
@@ -1843,6 +1833,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Facoltativo"
+          }
+        }
+      }
+    },
+    "Takku is free. If it is useful to you, [buy me a coffee](https://buymeacoffee.com/mameli.dev).": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takku è gratis. Se ti è utile, [offrimi un caffè](https://buymeacoffee.com/mameli.dev)."
           }
         }
       }

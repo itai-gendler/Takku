@@ -92,6 +92,15 @@ struct SettingsView: View {
                     )
                     .id(profiles[index].id)
                 }
+
+                // At the bottom, in grey: seen by those who scroll this far, not first thing.
+                Section {
+                } footer: {
+                    Text(Self.supportNote)
+                        .foregroundStyle(.secondary)
+                        .tint(.secondary)
+                        .frame(maxWidth: .infinity)
+                }
             }
             .formStyle(.grouped)
             .onAppear { showProfilesIfRequested(proxy) }
@@ -103,6 +112,15 @@ struct SettingsView: View {
     }
 
     private static let profilesID = "profiles"
+
+    /// The link is grey like the text around it, so it is underlined to show it is one.
+    private static var supportNote: AttributedString {
+        var note = AttributedString(localized: "Takku is free. If it is useful to you, [buy me a coffee](https://buymeacoffee.com/mameli.dev).")
+        for run in note.runs where run.link != nil {
+            note[run.range].underlineStyle = .single
+        }
+        return note
+    }
 
     /// Scrolls to the Summary Profiles, with a new one open in the editor if there are none yet.
     private func showProfilesIfRequested(_ proxy: ScrollViewProxy) {

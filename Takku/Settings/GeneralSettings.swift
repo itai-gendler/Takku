@@ -17,8 +17,6 @@ struct AppIdentity: View {
                 .accessibilityHidden(true)
             Text(verbatim: "Takku").font(.title2.bold()).foregroundStyle(.primary)
             Text("Version \(version)").font(.caption).foregroundStyle(.secondary)
-            Link("Buy me a coffee", destination: URL(string: "https://buymeacoffee.com/mameli.dev")!)
-                .font(.caption)
         }
         .padding(.top, 8)
     }
