@@ -121,6 +121,16 @@
         }
       }
     },
+    "Buy me a coffee": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offrimi un caffè"
+          }
+        }
+      }
+    },
     "Cannot read the audio of %@.": {
       "localizations": {
         "it": {

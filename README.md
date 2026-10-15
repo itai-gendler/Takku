@@ -186,6 +186,10 @@ cd TakkuCore && swift test   # domain logic tests
 - `scripts/release.sh` builds a Release signed with the `Takku` certificate, zips it, publishes it as a GitHub Release tagged with `MARKETING_VERSION` from `Config/Base.xcconfig` and updates the cask in the Homebrew tap ([mameli/homebrew-takku](https://github.com/mameli/homebrew-takku), cloned next to this repository). Every release needs a new version: a published one is never replaced, because Homebrew checks the zip's SHA-256. `--dry-run` stops after the zip.
 - Debug builds accept launch arguments for automated tests (`-smokeTestSeconds`, `-transcribeRecording`, …): see `runSmokeTestIfRequested()` in `Takku/MeetingController.swift`. They refuse to run unless pointed at a test vault, a test data folder and a test Summary server.
 
+## Support
+
+Takku is free. If it is useful to you, you can [buy me a coffee](https://buymeacoffee.com/mameli.dev): it helps cover the costs of keeping Takku going.
+
 ## License
 
 MIT, see [LICENSE](LICENSE).
