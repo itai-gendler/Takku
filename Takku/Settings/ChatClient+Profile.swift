@@ -17,7 +17,10 @@ extension ChatClient {
     init(profile: ProviderProfile) throws {
         let url = try profile.validatedBaseURL()
         let model = profile.model
-        self.init(baseURL: url, apiKey: Keychain.apiKey(for: profile.id), model: model, reasoning: profile.reasoning) { request in
+        self.init(
+            baseURL: url, apiKey: Keychain.apiKey(for: profile.id), model: model,
+            reasoning: profile.reasoning, extraParameters: profile.extraParameters
+        ) { request in
             // Every request with its timing: compare it with the provider's own logs.
             let host = request.url?.host() ?? "?"
             let sent = request.httpBody?.count ?? 0

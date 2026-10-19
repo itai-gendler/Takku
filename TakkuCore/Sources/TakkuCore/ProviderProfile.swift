@@ -13,10 +13,13 @@ public struct ProviderProfile: Codable, Identifiable, Equatable, Hashable, Senda
     public var maxContextTokens: Int
     /// How much the model reasons before answering; `nil` leaves it to the model.
     public var reasoning: ReasoningEffort?
+    /// What the model needs beyond the reasoning level, as the user wrote it: a JSON object added
+    /// to every request (see `ExtraParameters`). `nil` without any.
+    public var extraParameters: String?
 
     public init(
         id: UUID = UUID(), name: String, baseURL: String, model: String, maxContextTokens: Int,
-        reasoning: ReasoningEffort? = nil
+        reasoning: ReasoningEffort? = nil, extraParameters: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -24,12 +27,24 @@ public struct ProviderProfile: Codable, Identifiable, Equatable, Hashable, Senda
         self.model = model
         self.maxContextTokens = maxContextTokens
         self.reasoning = reasoning
+        self.extraParameters = extraParameters
     }
 
     /// Sent as `reasoning.effort` to OpenRouter and as `reasoning_effort` to every other provider.
     /// Not every model accepts every level, and some cannot turn reasoning off.
     public enum ReasoningEffort: String, Codable, CaseIterable, Hashable, Sendable {
         case off = "none", low, medium, high
+
+        /// The level as the Profile editor shows it. Looked up in the app's string catalog
+        /// (Bundle.main), so the app can translate it.
+        public var displayName: String {
+            switch self {
+            case .off: String(localized: "Off")
+            case .low: String(localized: "Low")
+            case .medium: String(localized: "Medium")
+            case .high: String(localized: "High")
+            }
+        }
     }
 
     public enum URLError: LocalizedError, Equatable {

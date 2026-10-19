@@ -71,6 +71,8 @@ At the first launch a *Welcome to Takku* window walks you through these steps (u
 
    Set *max context* to the model's real limit (for a local server, the `-c` it was started with). Plain `http://` is accepted only for servers on your Mac.
 
+   *Reasoning* sets how much the model thinks before answering: *Model default* sends nothing. OpenRouter gets it in its own format and adapts it to each model; every other provider gets OpenAI's `reasoning_effort`, which not every model accepts. Whatever a model needs beyond that goes in *Extra parameters*, a JSON object added to every request as written, each key in place of what Takku would send: the provider's documentation says what to write. For example, on [TensorX](https://docs.tensorx.ai/api-reference/reasoning) DeepSeek V4 reasons only with `{"chat_template_kwargs": {"thinking": true}}`, and Qwen 3.8 takes `{"reasoning_effort": "xhigh"}` but refuses *Off* and *High*. If the provider refuses a request, the error says what the Profile sets: *Test connection* sends the same request as a Summary, so you see it while setting up.
+
    OpenRouter is outside the EU and passes your requests on to the model's provider: Takku does not stop you from using it, but know where your meetings go.
 
    Takku does not check where a provider processes your data: check the provider's terms, and your company's policy, before using it for real meetings.

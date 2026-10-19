@@ -7,6 +7,8 @@ struct PasteableTextField: NSViewRepresentable {
     let placeholder: String
     @Binding var text: String
     var isSecure = false
+    /// For code such as JSON: monospaced, left-aligned, no smart quotes or dashes.
+    var isCode = false
     /// Called on Return.
     var onSubmit: () -> Void = {}
 
@@ -19,7 +21,8 @@ struct PasteableTextField: NSViewRepresentable {
         field.isBezeled = false
         field.drawsBackground = false
         field.focusRingType = .none
-        field.alignment = .right
+        field.alignment = isCode ? .left : .right
+        if isCode { field.font = .monospacedSystemFont(ofSize: NSFont.systemFontSize, weight: .regular) }
         field.lineBreakMode = .byTruncatingTail
         field.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return field
@@ -30,14 +33,28 @@ struct PasteableTextField: NSViewRepresentable {
         field.placeholderString = placeholder
     }
 
-    func makeCoordinator() -> Coordinator { Coordinator(text: $text, onSubmit: onSubmit) }
+    func makeCoordinator() -> Coordinator { Coordinator(text: $text, isCode: isCode, onSubmit: onSubmit) }
 
     final class Coordinator: NSObject, NSTextFieldDelegate {
         let text: Binding<String>
+        let isCode: Bool
         let onSubmit: () -> Void
-        init(text: Binding<String>, onSubmit: @escaping () -> Void) {
+        init(text: Binding<String>, isCode: Bool, onSubmit: @escaping () -> Void) {
             self.text = text
+            self.isCode = isCode
             self.onSubmit = onSubmit
+        }
+
+        // The field editor is shared by every field of the window: set it each time editing starts.
+        func control(_ control: NSControl, textShouldBeginEditing fieldEditor: NSText) -> Bool {
+            if let editor = fieldEditor as? NSTextView {
+                // With the system's smart quotes, a typed " becomes “ and the JSON is no longer valid.
+                // Other fields keep the user's system settings.
+                editor.isAutomaticQuoteSubstitutionEnabled = !isCode && NSSpellChecker.isAutomaticQuoteSubstitutionEnabled
+                editor.isAutomaticDashSubstitutionEnabled = !isCode && NSSpellChecker.isAutomaticDashSubstitutionEnabled
+                editor.isAutomaticTextReplacementEnabled = !isCode && NSSpellChecker.isAutomaticTextReplacementEnabled
+            }
+            return true
         }
 
         func controlTextDidChange(_ notification: Notification) {

@@ -51,6 +51,16 @@
         }
       }
     },
+    "Added to every request as written; each key replaces what Takku sends for it. For what a model needs beyond the Reasoning menu: see the provider's documentation.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiunti a ogni richiesta così come sono; ogni chiave sostituisce quella che manda Takku. Per quello che serve a un modello oltre al menu Ragionamento, vedi la documentazione del provider."
+          }
+        }
+      }
+    },
     "API key": {
       "localizations": {
         "it": {
@@ -281,12 +291,65 @@
         }
       }
     },
+    "Extra parameters": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parametri extra"
+          }
+        }
+      }
+    },
+    "Extra parameters: \"%@\" is set by Takku and cannot be replaced.": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parametri extra: \"%@\" lo imposta Takku e non si può sostituire."
+          }
+        }
+      }
+    },
+    "Extra parameters: this is not valid JSON.": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parametri extra: non è un JSON valido."
+          }
+        }
+      }
+    },
+    "Extra parameters: write a JSON object, between { and }.": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parametri extra: scrivi un oggetto JSON, tra { e }."
+          }
+        }
+      }
+    },
     "High": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Alto"
+          }
+        }
+      }
+    },
+    "JSON, e.g. {\"reasoning_effort\": \"xhigh\"}": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON, es. {\"reasoning_effort\": \"xhigh\"}"
           }
         }
       }
@@ -1130,6 +1193,39 @@
           "stringUnit": {
             "state": "translated",
             "value": "La risposta del modello è stata troncata per il limite di lunghezza."
+          }
+        }
+      }
+    },
+    "The Profile sets Extra parameters.": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il Profilo imposta Parametri extra."
+          }
+        }
+      }
+    },
+    "The Profile sets Reasoning: %@ and Extra parameters.": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il Profilo imposta Ragionamento: %@ e Parametri extra."
+          }
+        }
+      }
+    },
+    "The Profile sets Reasoning: %@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il Profilo imposta Ragionamento: %@."
           }
         }
       }

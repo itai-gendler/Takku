@@ -92,6 +92,69 @@ struct ChatClientTests {
         #expect(body["reasoning_effort"] == nil)
     }
 
+    @Test("Extra parameters go in the request as written, each key in place of Takku's", arguments: [
+        // TensorX's DeepSeek: its own key, next to the menu's level.
+        ("https://api.tensorx.ai/v1", ProviderProfile.ReasoningEffort.high, #"{"chat_template_kwargs":{"thinking":true}}"#,
+         #"{"chat_template_kwargs":{"thinking":true},"reasoning_effort":"high"}"#),
+        // A level the menu does not have replaces the menu's.
+        ("https://api.tensorx.ai/v1", .medium, #"{"reasoning_effort":"xhigh"}"#, #"{"reasoning_effort":"xhigh"}"#),
+        // No deep merge: OpenRouter's reasoning object is replaced whole, its effort is not kept.
+        ("https://openrouter.ai/api/v1", .low, #"{"reasoning":{"max_tokens":4000}}"#, #"{"reasoning":{"max_tokens":4000}}"#),
+        ("http://localhost:8080/v1", nil, "  ", "{}"),
+    ] as [(String, ProviderProfile.ReasoningEffort?, String, String)])
+    func extraParameters(baseURL: String, effort: ProviderProfile.ReasoningEffort?, extra: String, expected: String) async throws {
+        let stub = StubTransport(body: #"{"choices":[{"message":{"role":"assistant","content":"Ok."}}]}"#)
+        let client = ChatClient(
+            baseURL: URL(string: baseURL)!, apiKey: nil, model: "m", reasoning: effort, extraParameters: extra, transport: stub.send
+        )
+
+        _ = try await client.complete(messages)
+
+        var body = try #require(JSONSerialization.jsonObject(with: stub.requests.first?.httpBody ?? Data()) as? [String: Any])
+        #expect(body.removeValue(forKey: "model") as? String == "m")
+        #expect(body.removeValue(forKey: "messages") != nil)
+        let rest = try #require(JSONSerialization.jsonObject(with: Data(expected.utf8)) as? NSDictionary)
+        #expect(NSDictionary(dictionary: body) == rest)
+    }
+
+    @Test("invalid Extra parameters stop the request before it is sent")
+    func invalidExtraParameters() async {
+        let stub = StubTransport(body: #"{"choices":[{"message":{"role":"assistant","content":"Ok."}}]}"#)
+        let client = ChatClient(
+            baseURL: URL(string: "https://x.example/v1")!, apiKey: nil, model: "m", extraParameters: #"{"model":"other"}"#,
+            transport: stub.send
+        )
+
+        await #expect(throws: ExtraParameters.Problem.reserved("model")) {
+            try await client.complete(messages)
+        }
+        #expect(stub.requests.isEmpty)
+    }
+
+    @Test("a refused request says what the Profile adds to it, not the Profile's name or the parameters", arguments: [
+        (400, ProviderProfile.ReasoningEffort.high, #"{"x":1}"#,
+         "The provider answered with error 400: use xhigh. The Profile sets Reasoning: High and Extra parameters."),
+        (422, .off, "", "The provider answered with error 422: use xhigh. The Profile sets Reasoning: Off."),
+        (400, nil, #"{"x":1}"#, "The provider answered with error 400: use xhigh. The Profile sets Extra parameters."),
+        (400, nil, "", "The provider answered with error 400: use xhigh"),
+        // Not a refusal of what was sent: nothing added.
+        (401, .high, #"{"x":1}"#, "The provider answered with error 401: use xhigh"),
+    ] as [(Int, ProviderProfile.ReasoningEffort?, String, String)])
+    func refusedWithProfileSettings(status: Int, effort: ProviderProfile.ReasoningEffort?, extra: String, expected: String) async {
+        let stub = StubTransport(status: status, body: #"{"error":{"message":"use xhigh"}}"#)
+        let client = ChatClient(
+            baseURL: URL(string: "https://x.example/v1")!, apiKey: nil, model: "m", reasoning: effort, extraParameters: extra,
+            transport: stub.send
+        )
+
+        do {
+            _ = try await client.complete(messages)
+            Issue.record("no error")
+        } catch {
+            #expect(error.localizedDescription == expected)
+        }
+    }
+
     @Test("a reply in chunks (Mistral reasoning) gives the text chunks, not the thinking")
     func chunks() async throws {
         let stub = StubTransport(body: #"""

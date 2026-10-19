@@ -34,6 +34,9 @@ struct ProfileEditor: View {
     @State private var storedKeySuffix: String?
     @State private var status: String?
     @State private var isTesting = false
+    /// The Extra parameters as typed: they reach the Profile only when valid.
+    @State private var extraParameters = ""
+    @State private var extraParametersProblem: String?
 
     var body: some View {
         Section {
@@ -53,6 +56,20 @@ struct ProfileEditor: View {
                 Text("Low").tag(ProviderProfile.ReasoningEffort?.some(.low))
                 Text("Medium").tag(ProviderProfile.ReasoningEffort?.some(.medium))
                 Text("High").tag(ProviderProfile.ReasoningEffort?.some(.high))
+            }
+            LabeledContent("Extra parameters") {
+                PasteableTextField(
+                    placeholder: String(localized: "JSON, e.g. {\"reasoning_effort\": \"xhigh\"}"),
+                    text: $extraParameters, isCode: true
+                )
+            }
+            .onChange(of: extraParameters) { saveExtraParameters() }
+            if let extraParametersProblem {
+                Text(extraParametersProblem).foregroundStyle(.red)
+            } else {
+                Text("Added to every request as written; each key replaces what Takku sends for it. For what a model needs beyond the Reasoning menu: see the provider's documentation.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             // The only place where the key is entered. It is saved only on Return or with the
@@ -80,7 +97,7 @@ struct ProfileEditor: View {
 
             HStack {
                 Button("Test connection") { Task { await test() } }
-                    .disabled(isTesting || profile.baseURL.isEmpty || profile.model.isEmpty)
+                    .disabled(isTesting || profile.baseURL.isEmpty || profile.model.isEmpty || extraParametersProblem != nil)
                 if isTesting { ProgressView().controlSize(.small) }
                 Spacer()
                 if isActive {
@@ -98,7 +115,23 @@ struct ProfileEditor: View {
             Text("Changes are saved as you type. The key goes to the Keychain when you press Return or Save key.")
                 .foregroundStyle(.secondary)
         }
-        .onAppear { refreshStoredKey() }
+        .onAppear {
+            refreshStoredKey()
+            extraParameters = profile.extraParameters ?? ""
+        }
+    }
+
+    /// Saved only when valid: otherwise the field shows the problem and the Profile keeps the
+    /// last valid parameters.
+    private func saveExtraParameters() {
+        do {
+            _ = try ExtraParameters.parse(extraParameters)
+            let trimmed = extraParameters.trimmingCharacters(in: .whitespacesAndNewlines)
+            profile.extraParameters = trimmed.isEmpty ? nil : trimmed
+            extraParametersProblem = nil
+        } catch {
+            extraParametersProblem = error.localizedDescription
+        }
     }
 
     private func saveKey() {

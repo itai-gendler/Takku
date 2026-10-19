@@ -84,8 +84,12 @@ A local or remote service that performs a Role, chosen by the user: preferably l
 _Avoid_: backend, API, vendor
 
 **Provider profile** (`ProviderProfile`):
-A named configuration of a Provider (endpoint, credentials, model and, for the Summary, how much the model reasons) that the user selects for a Role. For the Summary the user can also choose none (*Transcript* in the menu): the Meeting then gets only its Transcript, with no Summary and no Template.
+A named configuration of a Provider (endpoint, credentials, model and, for the Summary, how much the model reasons and any Extra parameters) that the user selects for a Role. For the Summary the user can also choose none (*Transcript* in the menu): the Meeting then gets only its Transcript, with no Summary and no Template.
 _Avoid_: preset, account
+
+**Extra parameters**:
+Request parameters the user writes in a Provider profile, sent to the Provider as written and in place of what Takku would send for the same key. They hold what Takku does not know about a model, such as how it wants to be asked to reason.
+_Avoid_: custom body, overrides, advanced settings
 
 **Vault** (`Vault`):
 The Obsidian folder where Takku writes Meeting notes and Transcripts.

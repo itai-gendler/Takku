@@ -18,8 +18,9 @@ public struct ChatMessage: Codable, Equatable, Sendable {
 /// remote providers and local servers such as llama.cpp or Ollama (ADR 0004).
 public struct ChatClient: Sendable {
     public enum Failure: LocalizedError, Equatable {
-        /// The provider answered with an error: HTTP status and message as it sent them.
-        case http(status: Int, message: String)
+        /// The provider answered with an error: HTTP status and message as it sent them. When it
+        /// refused the request (400, 422), also what the Profile adds to it, which may be the cause.
+        case http(status: Int, message: String, reasoning: ProviderProfile.ReasoningEffort? = nil, extraParameters: Bool = false)
         /// No usable text in the reply.
         case emptyReply
         /// The model stopped at the length limit: the reply is cut in half.
@@ -28,13 +29,35 @@ public struct ChatClient: Sendable {
         public var errorDescription: String? {
             switch self {
             // Looked up in the app's string catalog (Bundle.main), so the app can translate them.
-            case .http(let status, let message):
-                String(localized: "The provider answered with error \(status): \(message)")
+            case .http(let status, let message, let reasoning, let extraParameters):
+                Self.withProfileSettings(
+                    String(localized: "The provider answered with error \(status): \(message)"), reasoning, extraParameters
+                )
             case .emptyReply:
                 String(localized: "The provider returned no text.")
             case .truncated:
                 String(localized: "The model's reply was cut off by the length limit.")
             }
+        }
+
+        /// The error with what the Profile sets beyond a plain request, never the Profile's name
+        /// or the parameters themselves: the message also goes to the log, which *Report a
+        /// problem…* includes.
+        private static func withProfileSettings(
+            _ error: String, _ reasoning: ProviderProfile.ReasoningEffort?, _ extraParameters: Bool
+        ) -> String {
+            let settings: String? = switch (reasoning, extraParameters) {
+            case (let reasoning?, true):
+                String(localized: "The Profile sets Reasoning: \(reasoning.displayName) and Extra parameters.")
+            case (let reasoning?, false):
+                String(localized: "The Profile sets Reasoning: \(reasoning.displayName).")
+            case (nil, true):
+                String(localized: "The Profile sets Extra parameters.")
+            case (nil, false):
+                nil
+            }
+            guard let settings else { return error }
+            return error + (error.last.map { ".!?".contains($0) } == true ? " " : ". ") + settings
         }
     }
 
@@ -44,33 +67,40 @@ public struct ChatClient: Sendable {
     private let apiKey: String?
     private let model: String
     private let reasoning: ProviderProfile.ReasoningEffort?
+    private let extraParameters: String?
     private let transport: Transport
 
     public init(
         baseURL: URL, apiKey: String?, model: String, reasoning: ProviderProfile.ReasoningEffort? = nil,
-        transport: @escaping Transport
+        extraParameters: String? = nil, transport: @escaping Transport
     ) {
         self.baseURL = baseURL
         self.apiKey = apiKey
         self.model = model
         self.reasoning = reasoning
+        self.extraParameters = extraParameters
         self.transport = transport
     }
 
     public func complete(_ messages: [ChatMessage]) async throws -> String {
+        let extra = try ExtraParameters.parse(extraParameters ?? "")
         var request = URLRequest(url: baseURL.appending(path: "chat/completions"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let apiKey {
             request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         }
-        request.httpBody = try JSONEncoder().encode(RequestBody(
+        request.httpBody = try ExtraParameters.applying(extra, to: JSONEncoder().encode(RequestBody(
             model: model, messages: messages, reasoning: reasoning, openRouter: Self.isOpenRouter(baseURL)
-        ))
+        )))
 
         let (data, response) = try await transport(request)
         guard (200..<300).contains(response.statusCode) else {
-            throw Failure.http(status: response.statusCode, message: Self.errorMessage(in: data))
+            let refused = [400, 422].contains(response.statusCode)
+            throw Failure.http(
+                status: response.statusCode, message: Self.errorMessage(in: data),
+                reasoning: refused ? reasoning : nil, extraParameters: refused && !extra.isEmpty
+            )
         }
         let choice = (try? JSONDecoder().decode(ResponseBody.self, from: data))?.choices.first
         guard choice?.finishReason != "length" else { throw Failure.truncated }
