@@ -19,8 +19,11 @@ public struct ChatMessage: Codable, Equatable, Sendable {
 public struct ChatClient: Sendable {
     public enum Failure: LocalizedError, Equatable {
         /// The provider answered with an error: HTTP status and message as it sent them. When it
-        /// refused the request (400, 422), also what the Profile adds to it, which may be the cause.
-        case http(status: Int, message: String, reasoning: ProviderProfile.ReasoningEffort? = nil, extraParameters: Bool = false)
+        /// refused the request (400, 422), also what the Profile added to it, which may be the cause:
+        /// the reasoning level if it was sent, and whether there were Extra parameters.
+        case http(
+            status: Int, message: String, reasoning: ProviderProfile.ReasoningEffort? = nil, hasExtraParameters: Bool = false
+        )
         /// No usable text in the reply.
         case emptyReply
         /// The model stopped at the length limit: the reply is cut in half.
@@ -29,9 +32,9 @@ public struct ChatClient: Sendable {
         public var errorDescription: String? {
             switch self {
             // Looked up in the app's string catalog (Bundle.main), so the app can translate them.
-            case .http(let status, let message, let reasoning, let extraParameters):
+            case .http(let status, let message, let reasoning, let hasExtraParameters):
                 Self.withProfileSettings(
-                    String(localized: "The provider answered with error \(status): \(message)"), reasoning, extraParameters
+                    String(localized: "The provider answered with error \(status): \(message)"), reasoning, hasExtraParameters
                 )
             case .emptyReply:
                 String(localized: "The provider returned no text.")
@@ -44,9 +47,9 @@ public struct ChatClient: Sendable {
         /// or the parameters themselves: the message also goes to the log, which *Report a
         /// problem…* includes.
         private static func withProfileSettings(
-            _ error: String, _ reasoning: ProviderProfile.ReasoningEffort?, _ extraParameters: Bool
+            _ error: String, _ reasoning: ProviderProfile.ReasoningEffort?, _ hasExtraParameters: Bool
         ) -> String {
-            let settings: String? = switch (reasoning, extraParameters) {
+            let settings: String? = switch (reasoning, hasExtraParameters) {
             case (let reasoning?, true):
                 String(localized: "The Profile sets Reasoning: \(reasoning.displayName) and Extra parameters.")
             case (let reasoning?, false):
@@ -57,7 +60,8 @@ public struct ChatClient: Sendable {
                 nil
             }
             guard let settings else { return error }
-            return error + (error.last.map { ".!?".contains($0) } == true ? " " : ". ") + settings
+            // A message cut at 300 characters ends with "…": no full stop after it.
+            return error + (error.last.map { ".!?…".contains($0) } == true ? " " : ". ") + settings
         }
     }
 
@@ -90,16 +94,17 @@ public struct ChatClient: Sendable {
         if let apiKey {
             request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         }
-        request.httpBody = try ExtraParameters.applying(extra, to: JSONEncoder().encode(RequestBody(
-            model: model, messages: messages, reasoning: reasoning, openRouter: Self.isOpenRouter(baseURL)
-        )))
+        let body = RequestBody(model: model, messages: messages, reasoning: reasoning, openRouter: Self.isOpenRouter(baseURL))
+        request.httpBody = try ExtraParameters.applying(extra, to: JSONEncoder().encode(body))
 
         let (data, response) = try await transport(request)
         guard (200..<300).contains(response.statusCode) else {
             let refused = [400, 422].contains(response.statusCode)
+            // The menu's level is not named when the Extra parameters replaced it: it was not sent.
+            let sentReasoning = extra[body.reasoningKey.stringValue] == nil ? reasoning : nil
             throw Failure.http(
                 status: response.statusCode, message: Self.errorMessage(in: data),
-                reasoning: refused ? reasoning : nil, extraParameters: refused && !extra.isEmpty
+                reasoning: refused ? sentReasoning : nil, hasExtraParameters: refused && !extra.isEmpty
             )
         }
         let choice = (try? JSONDecoder().decode(ResponseBody.self, from: data))?.choices.first
@@ -123,12 +128,8 @@ public struct ChatClient: Sendable {
     /// others), and the opening tag is sometimes missing: only what follows the last closing tag
     /// is the answer.
     private static func removingThinking(_ reply: String) -> String {
-        for tag in ["</think>", "</thinking>"] {
-            if let end = reply.range(of: tag, options: .backwards) {
-                return String(reply[end.upperBound...])
-            }
-        }
-        return reply
+        let ends = ["</think>", "</thinking>"].compactMap { reply.range(of: $0, options: .backwards)?.upperBound }
+        return ends.max().map { String(reply[$0...]) } ?? reply
     }
 
     /// The error message in the OpenAI format (`{"error":{"message":…}}`), otherwise the raw text,
@@ -160,7 +161,11 @@ public struct ChatClient: Sendable {
             self.messages = messages
             self.reasoning = openRouter ? reasoning.map(Reasoning.init) : nil
             reasoningEffort = openRouter ? nil : reasoning
+            reasoningKey = openRouter ? .reasoning : .reasoningEffort
         }
+
+        /// The key the reasoning level goes under for this provider.
+        let reasoningKey: CodingKeys
 
         enum CodingKeys: String, CodingKey {
             case model, messages, reasoning

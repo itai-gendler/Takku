@@ -13,6 +13,6 @@ Takku therefore knows two dialects and no model names. The Reasoning menu of a P
 
 ## Consequences
 
-- When the Provider refuses a request (400 or 422; not 401, 404 or 429, which say nothing about what was sent) from a Profile that sets reasoning or Extra parameters, the error adds what the Profile sets, without its name or the parameters' content: the message also goes to the log, which *Report a problem…* includes. *Test connection* sends the same request as a Summary, so a refusal shows when the Profile is set up.
+- When the Provider refuses a request (400 or 422; not 401, 404 or 429, which say nothing about what was sent) from a Profile that sets reasoning or Extra parameters, the error adds what the Profile sent beyond a plain request (the reasoning level, unless the Extra parameters replaced it, and whether there were Extra parameters), without its name or the parameters' content: the message also goes to the log, which *Report a problem…* includes. *Test connection* sends a short request with the same reasoning and Extra parameters as a Summary, so a value the model refuses shows when the Profile is set up.
 - The menu keeps the four levels OpenAI, OpenRouter and Regolo share; `xhigh`, `max` and the like are Extra parameters.
 - The reply is still read in every form seen so far (`reasoning_content` ignored, Mistral's chunk list, reasoning before `</think>` or `</thinking>`): there is nothing to configure there per model, and getting it wrong would put the reasoning in the note.

@@ -139,6 +139,8 @@ struct ChatClientTests {
         (400, nil, "", "The provider answered with error 400: use xhigh"),
         // Not a refusal of what was sent: nothing added.
         (401, .high, #"{"x":1}"#, "The provider answered with error 401: use xhigh"),
+        // The Extra parameters replaced the menu's level: it was not sent, so it is not named.
+        (400, .high, #"{"reasoning_effort":"banana"}"#, "The provider answered with error 400: use xhigh. The Profile sets Extra parameters."),
     ] as [(Int, ProviderProfile.ReasoningEffort?, String, String)])
     func refusedWithProfileSettings(status: Int, effort: ProviderProfile.ReasoningEffort?, extra: String, expected: String) async {
         let stub = StubTransport(status: status, body: #"{"error":{"message":"use xhigh"}}"#)
@@ -172,6 +174,8 @@ struct ChatClientTests {
         "<think>\nThe user wants a summary.\n</think>\n\n### Topics\nAll good.",
         "The user wants a summary.\n</think>\n### Topics\nAll good.",
         "<thinking>Plan the sections.</thinking>### Topics\nAll good.",
+        // The later closing tag wins, whichever it is.
+        "<think>First.</think> More reasoning.</thinking>### Topics\nAll good.",
     ])
     func thinkTags(content: String) async throws {
         let reply = String(data: try JSONEncoder().encode(content), encoding: .utf8)!
@@ -244,6 +248,25 @@ struct ChatClientTests {
             #expect(message.hasSuffix("…"))
         } catch {
             Issue.record("unexpected \(error)")
+        }
+    }
+
+    @Test("after a message cut short, what the Profile sets follows the ellipsis without a full stop")
+    func cutMessageWithProfileSettings() {
+        let failure = ChatClient.Failure.http(status: 400, message: "Input should be 'none'…", reasoning: .high)
+        #expect(failure.localizedDescription == "The provider answered with error 400: Input should be 'none'… The Profile sets Reasoning: High.")
+    }
+
+    @Test("on OpenRouter, a reasoning object in the Extra parameters replaces the menu's level, which is not named")
+    func openRouterReasoningReplaced() async {
+        let stub = StubTransport(status: 400, body: #"{"error":{"message":"bad reasoning"}}"#)
+        let client = ChatClient(
+            baseURL: URL(string: "https://openrouter.ai/api/v1")!, apiKey: nil, model: "m", reasoning: .high,
+            extraParameters: #"{"reasoning":{"max_tokens":-1}}"#, transport: stub.send
+        )
+
+        await #expect(throws: ChatClient.Failure.http(status: 400, message: "bad reasoning", hasExtraParameters: true)) {
+            try await client.complete(messages)
         }
     }
 

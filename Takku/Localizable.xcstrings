@@ -335,6 +335,7 @@
       }
     },
     "High": {
+      "extractionState": "manual",
       "localizations": {
         "it": {
           "stringUnit": {
@@ -355,6 +356,7 @@
       }
     },
     "Low": {
+      "extractionState": "manual",
       "localizations": {
         "it": {
           "stringUnit": {
@@ -365,6 +367,7 @@
       }
     },
     "Medium": {
+      "extractionState": "manual",
       "localizations": {
         "it": {
           "stringUnit": {
@@ -746,6 +749,7 @@
       }
     },
     "Off": {
+      "extractionState": "manual",
       "localizations": {
         "it": {
           "stringUnit": {

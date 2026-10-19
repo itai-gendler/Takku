@@ -52,10 +52,9 @@ struct ProfileEditor: View {
             TextField("Max context (tokens)", value: $profile.maxContextTokens, format: .number)
             Picker("Reasoning", selection: $profile.reasoning) {
                 Text("Model default").tag(ProviderProfile.ReasoningEffort?.none)
-                Text("Off").tag(ProviderProfile.ReasoningEffort?.some(.off))
-                Text("Low").tag(ProviderProfile.ReasoningEffort?.some(.low))
-                Text("Medium").tag(ProviderProfile.ReasoningEffort?.some(.medium))
-                Text("High").tag(ProviderProfile.ReasoningEffort?.some(.high))
+                ForEach(ProviderProfile.ReasoningEffort.allCases, id: \.self) { effort in
+                    Text(effort.displayName).tag(ProviderProfile.ReasoningEffort?.some(effort))
+                }
             }
             LabeledContent("Extra parameters") {
                 PasteableTextField(
@@ -125,9 +124,7 @@ struct ProfileEditor: View {
     /// last valid parameters.
     private func saveExtraParameters() {
         do {
-            _ = try ExtraParameters.parse(extraParameters)
-            let trimmed = extraParameters.trimmingCharacters(in: .whitespacesAndNewlines)
-            profile.extraParameters = trimmed.isEmpty ? nil : trimmed
+            profile.extraParameters = try ExtraParameters.parse(extraParameters).isEmpty ? nil : extraParameters
             extraParametersProblem = nil
         } catch {
             extraParametersProblem = error.localizedDescription
