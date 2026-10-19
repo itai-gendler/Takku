@@ -4,7 +4,7 @@ What changes in each version of Takku, newest first. **Before you update** lists
 
 Takku was called Steno up to 0.2.1.
 
-## 1.4.0
+## 1.4.0 (2026-10-19)
 
 - **Reasoning per Profile**: each Summary Profile can set how much the model reasons before answering: *Model default*, *Off*, *Low*, *Medium* or *High*. OpenRouter gets it in its own format and adapts it to each model; every other provider gets OpenAI's `reasoning_effort`, which not every model accepts.
 - **Extra parameters**: a JSON field in the Profile for what a model needs beyond that, added to every request as written. For example `{"chat_template_kwargs": {"thinking": true}}` makes DeepSeek V4 reason on TensorX. The [README](README.md) has more examples; the provider's documentation says what to write.
