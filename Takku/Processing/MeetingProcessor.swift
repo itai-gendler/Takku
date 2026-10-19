@@ -447,7 +447,7 @@ final class MeetingProcessor {
                 : nil
             return (.written(text: text, template: template.name, provider: profile.displayName), reply.flatMap(MeetingTitle.clean))
         } catch {
-            logger.error("Summary not generated after \(secondsSince(started), privacy: .public): \(error, privacy: .public)")
+            logger.error("Summary not generated after \(secondsSince(started), privacy: .public): \(error.localizedDescription, privacy: .public)")
             return (.failed(reason: error.localizedDescription), nil)
         }
     }
