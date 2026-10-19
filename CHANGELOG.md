@@ -4,6 +4,16 @@ What changes in each version of Takku, newest first. **Before you update** lists
 
 Takku was called Steno up to 0.2.1.
 
+## 1.4.0
+
+- **Reasoning per Profile**: each Summary Profile can set how much the model reasons before answering: *Model default*, *Off*, *Low*, *Medium* or *High*. OpenRouter gets it in its own format and adapts it to each model; every other provider gets OpenAI's `reasoning_effort`, which not every model accepts.
+- **Extra parameters**: a JSON field in the Profile for what a model needs beyond that, added to every request as written. For example `{"chat_template_kwargs": {"thinking": true}}` makes DeepSeek V4 reason on TensorX. The [README](README.md) has more examples; the provider's documentation says what to write.
+- When the provider refuses a request, the error says what the Profile sets (reasoning, Extra parameters), and a long message from the provider is cut so that it stays readable in the notification and in the note.
+- Replies from models that reason are read without their reasoning: Mistral's reasoning blocks and text between `<think>` tags no longer reach the Summary.
+- **Faster Retry**: while the audio is there, a Retry no longer decodes the microphone audio or tells the Speakers apart again. On a 37-minute meeting the Summary request now starts after a fraction of a second instead of about 14. Thanks to [@tmnd1991](https://github.com/tmnd1991) ([#2](https://github.com/mameli/Takku/pull/2)).
+- Processing logs every step with its timing, and *Report a problem…* includes them. They never contain the provider's address, only whether it is on this Mac or remote.
+- **Hooks**: an example that writes the Summary with Copilot CLI, from your own subscription, for meetings recorded with *Transcript* only. See the [README](README.md).
+
 ## 1.3.2 (2026-10-15)
 
 - The *buy me a coffee* link moves from the top of Settings to a grey note at the bottom.
