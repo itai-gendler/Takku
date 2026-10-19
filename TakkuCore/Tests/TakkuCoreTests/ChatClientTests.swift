@@ -225,6 +225,28 @@ struct ChatClientTests {
         }
     }
 
+    @Test("a long error message is cut at 300 characters, so what the Profile sets stays readable", arguments: [
+        // Regolo puts the whole upstream JSON in the message.
+        #"{"error":{"message":"regolo.BadRequestError: "# + String(repeating: "x", count: 400) + #""}}"#,
+        "<html>" + String(repeating: "x", count: 400) + "</html>",
+    ])
+    func longErrorMessage(body: String) async {
+        let stub = StubTransport(status: 400, body: body)
+        let client = ChatClient(
+            baseURL: URL(string: "https://x.example/v1")!, apiKey: nil, model: "m", reasoning: .high, transport: stub.send
+        )
+
+        do {
+            _ = try await client.complete(messages)
+            Issue.record("no error")
+        } catch let ChatClient.Failure.http(_, message, _, _) {
+            #expect(message.count == 301)
+            #expect(message.hasSuffix("…"))
+        } catch {
+            Issue.record("unexpected \(error)")
+        }
+    }
+
     @Test("a reply without text is an error, not an empty Summary", arguments: [
         #"{"choices":[{"message":{"role":"assistant","content":"   "}}]}"#,
         #"{"choices":[{"message":{"role":"assistant","content":null}}]}"#,

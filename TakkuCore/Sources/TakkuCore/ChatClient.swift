@@ -131,16 +131,17 @@ public struct ChatClient: Sendable {
         return reply
     }
 
-    /// The error message in the OpenAI format (`{"error":{"message":…}}`), otherwise the raw text.
+    /// The error message in the OpenAI format (`{"error":{"message":…}}`), otherwise the raw text,
+    /// cut at 300 characters: some providers put whole JSON bodies in it, and what the Profile
+    /// sets, added after it, must stay readable in a notification or in the note.
     private static func errorMessage(in data: Data) -> String {
         struct ErrorBody: Decodable {
             struct Detail: Decodable { let message: String }
             let error: Detail
         }
-        if let body = try? JSONDecoder().decode(ErrorBody.self, from: data) {
-            return body.error.message
-        }
-        return String(decoding: data.prefix(300), as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+        let message = ((try? JSONDecoder().decode(ErrorBody.self, from: data))?.error.message ?? String(decoding: data, as: UTF8.self))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return message.count > 300 ? message.prefix(300).trimmingCharacters(in: .whitespacesAndNewlines) + "…" : message
     }
 
     private struct RequestBody: Encodable {
