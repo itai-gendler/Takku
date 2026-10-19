@@ -11,13 +11,25 @@ public struct ProviderProfile: Codable, Identifiable, Equatable, Hashable, Senda
     public var model: String
     /// Tokens the model accepts in one request: beyond that the Transcript is split into blocks.
     public var maxContextTokens: Int
+    /// How much the model reasons before answering; `nil` leaves it to the model.
+    public var reasoning: ReasoningEffort?
 
-    public init(id: UUID = UUID(), name: String, baseURL: String, model: String, maxContextTokens: Int) {
+    public init(
+        id: UUID = UUID(), name: String, baseURL: String, model: String, maxContextTokens: Int,
+        reasoning: ReasoningEffort? = nil
+    ) {
         self.id = id
         self.name = name
         self.baseURL = baseURL
         self.model = model
         self.maxContextTokens = maxContextTokens
+        self.reasoning = reasoning
+    }
+
+    /// Sent as `reasoning.effort` to OpenRouter and as `reasoning_effort` to every other provider.
+    /// Not every model accepts every level, and some cannot turn reasoning off.
+    public enum ReasoningEffort: String, Codable, CaseIterable, Hashable, Sendable {
+        case off = "none", low, medium, high
     }
 
     public enum URLError: LocalizedError, Equatable {

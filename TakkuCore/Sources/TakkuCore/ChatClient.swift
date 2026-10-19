@@ -43,12 +43,17 @@ public struct ChatClient: Sendable {
     private let baseURL: URL
     private let apiKey: String?
     private let model: String
+    private let reasoning: ProviderProfile.ReasoningEffort?
     private let transport: Transport
 
-    public init(baseURL: URL, apiKey: String?, model: String, transport: @escaping Transport) {
+    public init(
+        baseURL: URL, apiKey: String?, model: String, reasoning: ProviderProfile.ReasoningEffort? = nil,
+        transport: @escaping Transport
+    ) {
         self.baseURL = baseURL
         self.apiKey = apiKey
         self.model = model
+        self.reasoning = reasoning
         self.transport = transport
     }
 
@@ -59,7 +64,9 @@ public struct ChatClient: Sendable {
         if let apiKey {
             request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         }
-        request.httpBody = try JSONEncoder().encode(RequestBody(model: model, messages: messages))
+        request.httpBody = try JSONEncoder().encode(RequestBody(
+            model: model, messages: messages, reasoning: reasoning, openRouter: Self.isOpenRouter(baseURL)
+        ))
 
         let (data, response) = try await transport(request)
         guard (200..<300).contains(response.statusCode) else {
@@ -67,8 +74,29 @@ public struct ChatClient: Sendable {
         }
         let choice = (try? JSONDecoder().decode(ResponseBody.self, from: data))?.choices.first
         guard choice?.finishReason != "length" else { throw Failure.truncated }
-        guard let reply = choice?.message.content?.trimmingCharacters(in: .whitespacesAndNewlines), !reply.isEmpty else {
+        guard let content = choice?.message.content,
+              case let reply = Self.removingThinking(content).trimmingCharacters(in: .whitespacesAndNewlines),
+              !reply.isEmpty
+        else {
             throw Failure.emptyReply
+        }
+        return reply
+    }
+
+    /// OpenRouter takes the reasoning in its own format; every other provider as OpenAI does.
+    private static func isOpenRouter(_ url: URL) -> Bool {
+        guard let host = url.host()?.lowercased() else { return false }
+        return host == "openrouter.ai" || host.hasSuffix(".openrouter.ai")
+    }
+
+    /// Some models write their reasoning in the reply, between `<think>` tags (`<thinking>` for
+    /// others), and the opening tag is sometimes missing: only what follows the last closing tag
+    /// is the answer.
+    private static func removingThinking(_ reply: String) -> String {
+        for tag in ["</think>", "</thinking>"] {
+            if let end = reply.range(of: tag, options: .backwards) {
+                return String(reply[end.upperBound...])
+            }
         }
         return reply
     }
@@ -86,14 +114,53 @@ public struct ChatClient: Sendable {
     }
 
     private struct RequestBody: Encodable {
+        struct Reasoning: Encodable {
+            let effort: ProviderProfile.ReasoningEffort
+        }
         let model: String
         let messages: [ChatMessage]
+        /// OpenRouter: `"reasoning": {"effort": "high"}`.
+        let reasoning: Reasoning?
+        /// Everyone else, as OpenAI: `"reasoning_effort": "high"`. Both are left out when `nil`.
+        let reasoningEffort: ProviderProfile.ReasoningEffort?
+
+        init(model: String, messages: [ChatMessage], reasoning: ProviderProfile.ReasoningEffort?, openRouter: Bool) {
+            self.model = model
+            self.messages = messages
+            self.reasoning = openRouter ? reasoning.map(Reasoning.init) : nil
+            reasoningEffort = openRouter ? nil : reasoning
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case model, messages, reasoning
+            case reasoningEffort = "reasoning_effort"
+        }
     }
 
     private struct ResponseBody: Decodable {
         struct Choice: Decodable {
             struct Message: Decodable {
                 let content: String?
+
+                /// Mistral, when the model reasons, sends a list of chunks instead of the text:
+                /// the answer is in the `text` chunks, the reasoning in the `thinking` ones.
+                struct Chunk: Decodable {
+                    let type: String
+                    let text: String?
+                }
+
+                enum CodingKeys: String, CodingKey { case content }
+
+                init(from decoder: Decoder) throws {
+                    let container = try decoder.container(keyedBy: CodingKeys.self)
+                    if let text = try? container.decodeIfPresent(String.self, forKey: .content) {
+                        content = text
+                    } else if let chunks = try? container.decodeIfPresent([Chunk].self, forKey: .content) {
+                        content = chunks.filter { $0.type == "text" }.compactMap(\.text).joined()
+                    } else {
+                        content = nil
+                    }
+                }
             }
             let message: Message
             let finishReason: String?

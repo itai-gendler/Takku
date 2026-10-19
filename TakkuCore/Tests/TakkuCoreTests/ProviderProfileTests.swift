@@ -27,4 +27,12 @@ struct ProviderProfileTests {
     func invalid(baseURL: String) {
         #expect(throws: ProviderProfile.URLError.invalid(baseURL)) { try profile(baseURL).validatedBaseURL() }
     }
+
+    @Test("a Profile saved before the reasoning option loads with the model's default")
+    func savedWithoutReasoning() throws {
+        let saved = #"{"id":"6A1C1F0E-2B7D-4C4B-9E61-3F0F2E5B9A10","name":"OpenRouter","baseURL":"https://openrouter.ai/api/v1","model":"m","maxContextTokens":128000}"#
+        let profile = try JSONDecoder().decode(ProviderProfile.self, from: Data(saved.utf8))
+        #expect(profile.reasoning == nil)
+        #expect(profile.maxContextTokens == 128_000)
+    }
 }

@@ -84,7 +84,7 @@ A local or remote service that performs a Role, chosen by the user: preferably l
 _Avoid_: backend, API, vendor
 
 **Provider profile** (`ProviderProfile`):
-A named configuration of a Provider (endpoint, credentials, model) that the user selects for a Role. For the Summary the user can also choose none (*Transcript* in the menu): the Meeting then gets only its Transcript, with no Summary and no Template.
+A named configuration of a Provider (endpoint, credentials, model and, for the Summary, how much the model reasons) that the user selects for a Role. For the Summary the user can also choose none (*Transcript* in the menu): the Meeting then gets only its Transcript, with no Summary and no Template.
 _Avoid_: preset, account
 
 **Vault** (`Vault`):

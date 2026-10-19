@@ -281,6 +281,46 @@
         }
       }
     },
+    "High": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alto"
+          }
+        }
+      }
+    },
+    "Low": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Basso"
+          }
+        }
+      }
+    },
+    "Medium": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medio"
+          }
+        }
+      }
+    },
+    "Model default": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Predefinito del modello"
+          }
+        }
+      }
+    },
     "No terms yet": {
       "localizations": {
         "it": {
@@ -642,6 +682,16 @@
         }
       }
     },
+    "Off": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disattivato"
+          }
+        }
+      }
+    },
     "Open Login Items": {
       "localizations": {
         "it": {
@@ -779,6 +829,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Esci da Takku"
+          }
+        }
+      }
+    },
+    "Reasoning": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ragionamento"
           }
         }
       }

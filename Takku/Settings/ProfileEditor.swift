@@ -47,6 +47,13 @@ struct ProfileEditor: View {
                 PasteableTextField(placeholder: String(localized: "e.g. mistral-medium-latest"), text: $profile.model)
             }
             TextField("Max context (tokens)", value: $profile.maxContextTokens, format: .number)
+            Picker("Reasoning", selection: $profile.reasoning) {
+                Text("Model default").tag(ProviderProfile.ReasoningEffort?.none)
+                Text("Off").tag(ProviderProfile.ReasoningEffort?.some(.off))
+                Text("Low").tag(ProviderProfile.ReasoningEffort?.some(.low))
+                Text("Medium").tag(ProviderProfile.ReasoningEffort?.some(.medium))
+                Text("High").tag(ProviderProfile.ReasoningEffort?.some(.high))
+            }
 
             // The only place where the key is entered. It is saved only on Return or with the
             // button, never while typing: a stray keystroke must not replace a working key.

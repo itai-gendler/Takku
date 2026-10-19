@@ -61,6 +61,73 @@ struct ChatClientTests {
         #expect(sent == [["role": "system", "content": "You are Takku."], ["role": "user", "content": "Summarise."]])
     }
 
+    @Test("OpenRouter gets the reasoning as an object, every other provider as reasoning_effort", arguments: [
+        ("https://openrouter.ai/api/v1", ProviderProfile.ReasoningEffort.high, #"{"effort":"high"}"# as String?, nil as String?),
+        ("https://openrouter.ai/api/v1", .off, #"{"effort":"none"}"#, nil),
+        ("https://api.eurouter.ai/api/v1", .low, nil, "low"),
+        ("https://api.mistral.ai/v1", .off, nil, "none"),
+        ("http://localhost:8080/v1", .medium, nil, "medium"),
+    ])
+    func reasoning(baseURL: String, effort: ProviderProfile.ReasoningEffort, object: String?, field: String?) async throws {
+        let stub = StubTransport(body: #"{"choices":[{"message":{"role":"assistant","content":"Ok."}}]}"#)
+        let client = ChatClient(baseURL: URL(string: baseURL)!, apiKey: nil, model: "m", reasoning: effort, transport: stub.send)
+
+        _ = try await client.complete(messages)
+
+        let body = try #require(JSONSerialization.jsonObject(with: stub.requests.first?.httpBody ?? Data()) as? [String: Any])
+        let sentObject = try body["reasoning"].map { String(decoding: try JSONSerialization.data(withJSONObject: $0), as: UTF8.self) }
+        #expect(sentObject == object)
+        #expect(body["reasoning_effort"] as? String == field)
+    }
+
+    @Test("without a reasoning level the request carries neither field", arguments: ["https://openrouter.ai/api/v1", "https://api.mistral.ai/v1"])
+    func noReasoning(baseURL: String) async throws {
+        let stub = StubTransport(body: #"{"choices":[{"message":{"role":"assistant","content":"Ok."}}]}"#)
+        let client = ChatClient(baseURL: URL(string: baseURL)!, apiKey: nil, model: "m", transport: stub.send)
+
+        _ = try await client.complete(messages)
+
+        let body = try #require(JSONSerialization.jsonObject(with: stub.requests.first?.httpBody ?? Data()) as? [String: Any])
+        #expect(body["reasoning"] == nil)
+        #expect(body["reasoning_effort"] == nil)
+    }
+
+    @Test("a reply in chunks (Mistral reasoning) gives the text chunks, not the thinking")
+    func chunks() async throws {
+        let stub = StubTransport(body: #"""
+            {"choices":[{"message":{"role":"assistant","content":[
+              {"type":"thinking","thinking":[{"type":"text","text":"The user wants a summary."}]},
+              {"type":"text","text":"### Topics\n"},{"type":"text","text":"All good."}
+            ]}}]}
+            """#)
+        let client = ChatClient(baseURL: URL(string: "https://api.mistral.ai/v1")!, apiKey: nil, model: "m", transport: stub.send)
+
+        #expect(try await client.complete(messages) == "### Topics\nAll good.")
+    }
+
+    @Test("reasoning written in the reply between think tags is not part of it", arguments: [
+        "<think>\nThe user wants a summary.\n</think>\n\n### Topics\nAll good.",
+        "The user wants a summary.\n</think>\n### Topics\nAll good.",
+        "<thinking>Plan the sections.</thinking>### Topics\nAll good.",
+    ])
+    func thinkTags(content: String) async throws {
+        let reply = String(data: try JSONEncoder().encode(content), encoding: .utf8)!
+        let stub = StubTransport(body: #"{"choices":[{"message":{"role":"assistant","content":"# + reply + "}}]}")
+        let client = ChatClient(baseURL: URL(string: "https://api.scaleway.ai/v1")!, apiKey: nil, model: "m", transport: stub.send)
+
+        #expect(try await client.complete(messages) == "### Topics\nAll good.")
+    }
+
+    @Test("a reply that is only reasoning is an empty reply")
+    func onlyThinking() async {
+        let stub = StubTransport(body: #"{"choices":[{"message":{"role":"assistant","content":"<think>Hmm.</think>\n"}}]}"#)
+        let client = ChatClient(baseURL: URL(string: "https://x.example/v1")!, apiKey: nil, model: "m", transport: stub.send)
+
+        await #expect(throws: ChatClient.Failure.emptyReply) {
+            try await client.complete(messages)
+        }
+    }
+
     @Test("without a key (local server) there is no Authorization header; the reply is trimmed")
     func localServer() async throws {
         let stub = StubTransport(body: #"{"choices":[{"message":{"role":"assistant","content":"\n  ### Topics\nAll good.\n\n"}}]}"#)
