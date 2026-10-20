@@ -4,7 +4,7 @@ What changes in each version of Takku, newest first. **Before you update** lists
 
 Takku was called Steno up to 0.2.1.
 
-## Unreleased
+## 1.5.1
 
 - **Better Summaries**, from the Summary log of 29 real meetings:
   - Actions are only what someone took on in the meeting, no longer every update of a stand-up, and with none there is no "No actions agreed" line.
