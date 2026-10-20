@@ -53,6 +53,9 @@ struct TemplateTests {
         #expect(template.body.contains("in the order they were discussed"))
         #expect(template.body.contains("### Next steps"))
         #expect(template.body.contains("- [ ] What to do (Who)"))
+        #expect(template.body.contains("Not actions: work already in progress that someone reports"))
+        #expect(template.body.contains("With no actions, leave out this section, heading included."))
+        #expect(template.body.contains("Write every heading, this one included, in the language of the summary."))
     }
 
     @Test("a new Template starts from the default one with the chosen name")

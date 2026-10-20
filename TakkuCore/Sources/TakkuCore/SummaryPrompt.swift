@@ -130,13 +130,13 @@ public struct SummaryPrompt: Sendable {
         Rules:
         - Write the summary in \(languageName), whatever language the instructions are written in.
         - Follow the structure and instructions of the Template.
-        - Do not invent: use only what is in the Transcript and in the personal notes.
+        - Do not invent: use only what is in the Transcript and in the personal notes. \(Self.nonsenseRule)
         - For every bullet, actions included, end it with the time of the Transcript passage it comes from, in square brackets as in the Transcript: `[12:34]`, or `[03:10] [07:45]` for several. Leave out what you cannot point to in the Transcript or in the personal notes. Takku removes the times before showing the summary: do not mention them otherwise.
         - \(Self.truncationRule)
         - \(meRule)
         - \(Self.speakersRule)\(namedSpeakersRule.map { "\n- " + $0 } ?? "")\(participantsRule.map { "\n- " + $0 } ?? "")
-        - The personal notes say what matters to the person who wrote them: give those topics priority.\(marksRule.map { "\n- " + $0 } ?? "")
-        - Write actions as a `- [ ]` checklist, in the format the Template asks for; if it asks for none, `- [ ] who: what (when)`. Leave out who or when if they are not clear, with nothing in their place.
+        - The personal notes say what matters to the person who wrote them: give those topics priority. \(Self.pastedNotesRule)\(marksRule.map { "\n- " + $0 } ?? "")
+        - Write actions as a `- [ ]` checklist, in the format the Template asks for; if it asks for none, `- [ ] who: what (when)`. \(Self.actionsRule) Write who only when the Transcript makes clear who took the action on: a name in the personal notes\(participants.isEmpty ? "" : " or among the invited participants") is not enough. Leave out who or when if they are not clear, with nothing in their place.
         - Reply with the summary in Markdown only, without preambles.
         """ + vocabularyBlock
     }
@@ -156,15 +156,40 @@ public struct SummaryPrompt: Sendable {
     }
 
     /// Speakers are told apart by voice only: their names come from what is said, when it is clear.
-    /// An unnamed Speaker keeps the label only on an action, where "who" is worth a guess for the reader.
+    /// An unnamed Speaker keeps the label only on an action, where "who" is worth a guess for the reader;
+    /// elsewhere the model kept writing "Speaker N" until it was shown the sentence without a subject.
     private static let speakersRule = """
-        The other participants are "Speaker 1", "Speaker 2"…, told apart by their voice: the same number is the same person throughout the Transcript, but a short reply can be given to the wrong one; "Others" is someone not told apart. A Speaker's name is the one they introduce themselves with, or the one they answer to when called: use it for what that Speaker says and takes on. For a Speaker without a name, say who they are if it is clear (e.g. "the supplier's team"). Otherwise write "Speaker N" only as who takes on an action, and leave out who everywhere else: never "Speaker N" in a heading or in the other bullets.
+        The other participants are "Speaker 1", "Speaker 2"…, told apart by their voice: the same number is the same person throughout the Transcript, but a short reply can be given to the wrong one. \(othersRule) A Speaker's name is the one they introduce themselves with, or the one they answer to when called: use it for what that Speaker says and takes on. For a Speaker without a name, say who they are if it is clear (e.g. "the supplier's team"). Otherwise write "Speaker N" only as who takes on an action; everywhere else leave out who and write the bullet without a subject (e.g. "It is proposed to…" instead of "Speaker 2 proposes…"): never "Speaker N" in a heading or in the other bullets.
         """
 
     /// In the summaries of the parts of a long Meeting a Speaker's name may only come up in
     /// another part: the label is kept so the final summary can still name them.
     private static let partialSpeakersRule = """
-        The other participants are "Speaker 1", "Speaker 2"…, told apart by their voice: the same number is the same person in every part; "Others" is someone not told apart. A Speaker's name is the one they introduce themselves with, or the one they answer to when called: write "Speaker N (Name)" when it is clear, otherwise keep "Speaker N".
+        The other participants are "Speaker 1", "Speaker 2"…, told apart by their voice: the same number is the same person in every part. \(othersRule) A Speaker's name is the one they introduce themselves with, or the one they answer to when called: write "Speaker N (Name)" when it is clear, otherwise keep "Speaker N".
+        """
+
+    /// "Others" is several voices under one label: with the names of the personal notes or of the
+    /// invitation at hand, the model handed them out to its paragraphs and got who did what wrong.
+    private static let othersRule = """
+        "Others" is anyone not told apart, often several people: give it a name only in a passage where the Transcript itself says who is speaking (e.g. "Mario, your turn" just before).
+        """
+
+    /// Personal notes are not always notes: an email pasted before the call or the list of the people
+    /// in it were taken for what was said or decided, and the list for who said it.
+    private static let pastedNotesRule = """
+        They may also hold material pasted by the user, such as an email or a list of people: use it to understand the meeting, but it is not what was said or decided in it, and a name in the notes does not say who spoke.
+        """
+
+    /// In stand-ups every update turned into an action, and a Meeting without any got a
+    /// "- [ ] No actions agreed" line.
+    private static let actionsRule = """
+        An action is something someone took on in this meeting: work in progress that someone reports, waiting for others or attending a meeting already planned are not actions. With no actions, write none and no line saying there are none.
+        """
+
+    /// Recognition errors (an impossible year, three dates that cannot all be right) were copied
+    /// into the Summary as facts.
+    private static let nonsenseRule = """
+        Leave out passages that make no sense, such as a misheard figure or date, instead of copying them.
         """
 
     /// "Name (Speaker N)" in the Transcript: the user named that Speaker in the Meeting note.
@@ -231,7 +256,8 @@ public struct SummaryPrompt: Sendable {
                 Summarise it faithfully and compactly, in \(languageName): topics, decisions, actions (who, what, when) and open questions, with timestamps.
                 \(meRule)
                 \(Self.partialSpeakersRule)\(namedSpeakersRule.map { "\n" + $0 } ?? "")\(marksRule.map { "\n" + $0 } ?? "")
-                Do not invent. \(Self.truncationRule)
+                The personal notes say what matters to the person who wrote them. \(Self.pastedNotesRule)
+                Do not invent. \(Self.nonsenseRule) \(Self.truncationRule)
                 Reply with the summary only.
                 """ + vocabularyBlock),
             ChatMessage(role: .user, content: """

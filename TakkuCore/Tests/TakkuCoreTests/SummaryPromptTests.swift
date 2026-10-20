@@ -75,8 +75,59 @@ struct SummaryPromptTests {
         #expect(system.contains("\"Speaker 1\", \"Speaker 2\"…, told apart by their voice"))
         #expect(system.contains("the one they introduce themselves with, or the one they answer to when called"))
         #expect(system.contains("write \"Speaker N\" only as who takes on an action"))
+        #expect(system.contains("write the bullet without a subject (e.g. \"It is proposed to…\" instead of \"Speaker 2 proposes…\")"))
         #expect(system.contains("never \"Speaker N\" in a heading or in the other bullets"))
         #expect(system.contains("Leave out who or when if they are not clear, with nothing in their place"))
+    }
+
+    @Test("Others gets a name only where the Transcript says who is speaking, also in the partial requests")
+    func othersUnnamed() {
+        let prompt = SummaryPrompt(template: template, personalNotes: "", transcript: transcript, meetingLanguage: "it")
+        let rule = "\"Others\" is anyone not told apart, often several people: give it a name only in a passage where the Transcript itself says who is speaking"
+
+        #expect(prompt.singleRequest()[0].content.contains(rule))
+        #expect(prompt.partialRequests(maxContextTokens: 8_192)[0][0].content.contains(rule))
+    }
+
+    @Test("who takes on an action comes from the Transcript, not from the notes or the invitation")
+    func actionOwner() {
+        let system = SummaryPrompt(template: template, personalNotes: "", transcript: transcript, meetingLanguage: "it")
+            .singleRequest()[0].content
+
+        let invited = SummaryPrompt(
+            template: template, personalNotes: "", transcript: transcript, meetingLanguage: "it", participants: ["Anna Bianchi"]
+        ).singleRequest()[0].content
+
+        #expect(system.contains("Write who only when the Transcript makes clear who took the action on: a name in the personal notes is not enough."))
+        #expect(invited.contains("a name in the personal notes or among the invited participants is not enough"))
+    }
+
+    @Test("an action is something taken on in the Meeting, and with none there is no line saying so")
+    func actions() {
+        let system = SummaryPrompt(template: template, personalNotes: "", transcript: transcript, meetingLanguage: "it")
+            .singleRequest()[0].content
+
+        #expect(system.contains("An action is something someone took on in this meeting"))
+        #expect(system.contains("work in progress that someone reports, waiting for others or attending a meeting already planned are not actions"))
+        #expect(system.contains("With no actions, write none and no line saying there are none"))
+    }
+
+    @Test("material pasted in the personal notes is context, not what was said, also in the partial requests")
+    func pastedNotes() {
+        let prompt = SummaryPrompt(template: template, personalNotes: "Ciao Mario, …", transcript: transcript, meetingLanguage: "it")
+        let rule = "such as an email or a list of people: use it to understand the meeting, but it is not what was said or decided in it, and a name in the notes does not say who spoke"
+
+        #expect(prompt.singleRequest()[0].content.contains(rule))
+        #expect(prompt.partialRequests(maxContextTokens: 8_192)[0][0].content.contains(rule))
+    }
+
+    @Test("passages that make no sense are left out, not copied, also in the partial requests")
+    func nonsense() {
+        let prompt = SummaryPrompt(template: template, personalNotes: "", transcript: transcript, meetingLanguage: "it")
+        let rule = "Leave out passages that make no sense, such as a misheard figure or date, instead of copying them."
+
+        #expect(prompt.singleRequest()[0].content.contains("Do not invent: use only what is in the Transcript and in the personal notes. " + rule))
+        #expect(prompt.partialRequests(maxContextTokens: 8_192)[0][0].content.contains(rule))
     }
 
     @Test("every point must cite the time of the Transcript it comes from, and the model knows the times are removed")
@@ -105,7 +156,7 @@ struct SummaryPromptTests {
         - Mameli
         """)
 
-    @Test("the Vocabulary goes into the system message, with the rule to correct only what is certain")
+    @Test("the Vocabulary goes into the system message: a listed variant is always the term, other words are corrected only when certain")
     func vocabularyInSystemMessage() {
         let messages = SummaryPrompt(
             template: template, personalNotes: "", transcript: transcript, meetingLanguage: "it", vocabulary: vocabulary
@@ -116,7 +167,9 @@ struct SummaryPromptTests {
         #expect(system.contains("- Scaleway (may be written as \"scale uai\")"))
         #expect(system.contains("\n- Mameli\n"))
         #expect(system.contains("automatic speech recognition"))
-        #expect(system.contains("only when you are sure"))
+        #expect(system.contains("A word written as one of the variants listed above is that term: always write the term."))
+        #expect(system.contains("For other words use the Vocabulary and the context to write them right, but correct a word only when you are sure"))
+        #expect(system.contains("Do not bring in a term that nobody said."))
         // The Vocabulary is not part of what the user message carries.
         #expect(!messages[1].content.contains("Scaleway"))
     }

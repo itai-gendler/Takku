@@ -50,6 +50,8 @@ public struct Vocabulary: Equatable, Sendable {
 
     /// What the system prompt of a request carries about the Vocabulary: the terms with their
     /// description and variants, and the rule for using them. `nil` if there are no entries.
+    /// A listed variant is certain: told only to correct when sure, the model left "Carpenter" next to
+    /// "Karpenter = Carpenter". A term nobody said is not: it once turned up in a Summary by association.
     var promptBlock: String? {
         guard !entries.isEmpty else { return nil }
         let lines = entries.map { entry in
@@ -64,8 +66,9 @@ public struct Vocabulary: Equatable, Sendable {
             Vocabulary, the names and technical terms of this person's meetings:
             \(lines.joined(separator: "\n"))
             The Transcript comes from automatic speech recognition and may spell names and technical terms wrong. \
-            Use the Vocabulary and the context to write them right, but correct a word only when you are sure; \
-            otherwise leave it as it is.
+            A word written as one of the variants listed above is that term: always write the term. \
+            For other words use the Vocabulary and the context to write them right, but correct a word only when you are sure; \
+            otherwise leave it as it is. Do not bring in a term that nobody said.
             """
     }
 

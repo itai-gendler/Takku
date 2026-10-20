@@ -6,6 +6,13 @@ Takku was called Steno up to 0.2.1.
 
 ## Unreleased
 
+- **Better Summaries**, from the Summary log of 29 real meetings:
+  - Actions are only what someone took on in the meeting, no longer every update of a stand-up, and with none there is no "No actions agreed" line.
+  - Who does what comes from the Transcript only: names in the Personal notes or in the invitation, and voices Takku could not tell apart (*Others*), no longer get actions that are not theirs.
+  - A variant listed in the Vocabulary always becomes its term in the Summary, and terms nobody said no longer turn up.
+  - An email or a list of people pasted in the Personal notes is read as context, not as what was decided in the meeting.
+  - Unnamed participants no longer appear as "Speaker N" in the bullets, and misheard figures or dates are left out instead of copied.
+  - The default *Notes* Template groups a stand-up by project, writes its headings in the Summary language and leaves out *Next steps* when there are none. **Your `Notes.md` is not changed**: to get the new one, move it to the Trash and restart Takku.
 - **Fix: *Use the calendar* turned itself off after an update.** When Takku found no access to the calendars it switched the setting off for good; now the switch only shows off until access is back, and the setting stays as you left it.
 
 ## 1.5.0 (2026-10-20)
