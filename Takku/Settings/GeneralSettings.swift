@@ -92,20 +92,23 @@ struct SuggestCallsToggle: View {
 }
 
 /// Names the Meeting note after the calendar event in progress and lists its participants.
-/// Turning it on asks macOS for access to the calendars; without it the switch goes back off.
+/// Turning it on asks macOS for access to the calendars. Without access the switch shows off but
+/// the choice is kept: a build with another signature (a local one, same bundle id) has no access
+/// and must not turn it off for the installed Takku, which shares its settings.
 struct CalendarToggle: View {
     @AppStorage(AppSettings.useCalendarKey) private var useCalendar = false
+    @State private var isAuthorized = MeetingCalendar.isAuthorized
     @State private var isDenied = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Toggle("Use the calendar", isOn: Binding(get: { useCalendar }, set: { setEnabled($0) }))
+            Toggle("Use the calendar", isOn: Binding(get: { useCalendar && isAuthorized }, set: { setEnabled($0) }))
             Text("The Meeting note takes the name and the participants of the event in progress.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         // Access can be revoked in System Settings while Takku is running.
-        .onAppear { if useCalendar && !MeetingCalendar.isAuthorized { useCalendar = false } }
+        .onAppear { isAuthorized = MeetingCalendar.isAuthorized }
         if isDenied {
             HStack {
                 Text("Allow Takku in System Settings → Privacy & Security → Calendars.").foregroundStyle(.secondary)
@@ -124,7 +127,8 @@ struct CalendarToggle: View {
         }
         Task {
             let granted = await MeetingCalendar.requestAccess()
-            useCalendar = granted
+            if granted { useCalendar = true }
+            isAuthorized = granted
             isDenied = !granted
         }
     }

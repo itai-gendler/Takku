@@ -4,6 +4,10 @@ What changes in each version of Takku, newest first. **Before you update** lists
 
 Takku was called Steno up to 0.2.1.
 
+## Unreleased
+
+- **Fix: *Use the calendar* turned itself off after an update.** When Takku found no access to the calendars it switched the setting off for good; now the switch only shows off until access is back, and the setting stays as you left it.
+
 ## 1.5.0 (2026-10-20)
 
 - **Summary log**: Takku keeps a copy of every request it sends the model for a Summary, and of every reply, in `~/.takku/summary-log/`: one JSON file per Summary, Retry included, also when it fails. Use it to improve your Templates: write what was wrong in the `comment` field at the top of a file, then give a few files to a model you trust and ask what to change. Up to 5 MB, the oldest go first. It is on by default; turn it off, see how much it takes or delete it in *Settings → Recordings*. Takku never reads it, and *Report a problem…* never includes it.
