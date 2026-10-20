@@ -4,7 +4,7 @@ What changes in each version of Takku, newest first. **Before you update** lists
 
 Takku was called Steno up to 0.2.1.
 
-## 1.4.1
+## 1.4.1 (2026-10-20)
 
 - **Fix: notes named after the wrong calendar event.** A meeting started a few minutes before the next call, or at the same time as other calls, could take the other event's name and participants. Takku still picks an event at the start, and while recording the menu now has *Calendar event*: every event in progress at the start, with its time, and *None*. Picking another one gives the note its name and participants; with *None* the Summary gives the title.
 - Distribution lists invited to an event are no longer written in `participants`, like rooms and resources.
