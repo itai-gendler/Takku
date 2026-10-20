@@ -50,6 +50,7 @@ Before starting: Takku running from the menu bar (notebook icon), Vault and a Su
 - [ ] **Deleted Profile**: start a Meeting with a Profile, delete that Profile in Settings before the Summary → the note says the Profile was deleted; choose another Profile and *Retry* → Summary written.
 - [ ] **New Profile**: *Add Profile* → the menu still shows the Profile active before (or *Transcript*) until *Use for Summaries*.
 - [ ] **Recordings in Settings**: the space used matches the folder opened by *Show in Finder*; *Delete audio* asks for confirmation and brings it to zero.
+- [ ] **Summary log**: after a Meeting, `~/.takku/summary-log/` has one JSON file named date, Template and model, with `about` and a `single` and a `title` call whose request has the Transcript; no Profile address in it. A Retry adds a second file. Settings → *Recordings*: the log's size matches the folder, *Delete log* asks for confirmation and brings it to zero; with *Keep a Summary log* off a Retry adds nothing.
 - [x] **Retry**: turn off the internet connection, record a short Meeting → "Processing failed" and ⚠️ in the note and in the menu; reconnect and *Retry* → Summary generated.
 
 ## Echo residue

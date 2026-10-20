@@ -71,6 +71,10 @@ _Avoid_: model (ambiguous with the AI model), prompt
 A file in `~/.takku/` listing the terms (names, acronyms, technical words) that speech recognition tends to get wrong. Each entry is the correct term, optionally with the variants usually heard instead and a short description of what it is. It applies to every Meeting.
 _Avoid_: dictionary, glossary
 
+**Summary log** (`SummaryLog`):
+The copy, in `~/.takku/summary-log/`, of every request Takku sent the model for a Summary and of every reply, as they went: one entry per Summary, Retry and Regeneration included, also when the Summary failed. The user reads it to improve the Templates; Takku writes it and never reads it back (ADR 0010).
+_Avoid_: history, trace, prompt log
+
 **Regeneration** (`Regeneration`):
 Producing a new Summary for a Meeting already processed from its Transcript in the Vault, without the audio. It is what Retry does once the audio is deleted.
 

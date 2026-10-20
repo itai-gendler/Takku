@@ -152,6 +152,7 @@ How to write one, how to run several, and a ready-made Hook that copies every me
 - **Notes and Transcripts**: in your vault, as plain Markdown.
 - **Templates and Vocabulary**: in `~/.takku/`, as plain Markdown, the same whatever the vault.
 - **Audio**: in `~/Library/Application Support/Takku/Recordings/`, about 20 MB per hour of meeting. It is deleted after 7 days (*Settings → Recordings*); after that, Retry rebuilds the Summary from the Transcript in the vault.
+- **Summary log**: in `~/.takku/summary-log/`, one JSON file per Summary with every request sent to the model (Transcript, Template, Vocabulary, Personal notes, participants) and every reply, as they went. It is there to improve your Templates: write what was wrong in the `comment` field at the top of a file, then give a few files to a model you trust and ask what to change. Takku never reads it back. Up to 5 MB, the oldest files go first; turn it off or delete it in *Settings → Recordings*. *Report a problem…* never includes it.
 - **API keys**: in the macOS Keychain.
 - **Transcription model**: in `~/Library/Application Support/Takku/Models/`, downloaded once from Hugging Face. Only the model is downloaded; no audio or text is sent.
 - **Calendar**: read on the Mac through macOS, only if you turn it on; titles and participants go into the note, and the participants into the Summary request.

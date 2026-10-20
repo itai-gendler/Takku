@@ -381,12 +381,16 @@ final class MeetingProcessor {
         let wantsTitle = vault.isInMeetingsFolder(noteURL) && VaultNaming.renamedNoteName(
             current: noteURL.deletingPathExtension().lastPathComponent, startedAt: record.startedAt, title: VaultNaming.defaultTitle
         ) != nil
-        let (summary, title) = await summarize(
+        let template = TakkuFolder.template(named: record.templateName)
+        let (summary, title, log) = await summarize(
             transcript.naming(speakerNames), language: language, personalNotes: note.personalNotes,
             participants: note.participants, wantsTitle: wantsTitle,
-            template: TakkuFolder.template(named: record.templateName), profile: record.summaryProfile, vocabulary: vocabulary
+            template: template, profile: record.summaryProfile, vocabulary: vocabulary
         )
         let rename = renameIfProvisional(noteURL, title: title, startedAt: record.startedAt, in: vault)
+        if let log {
+            await writeSummaryLog(log, summary: summary, noteURL: rename.url, template: template.name, record: record)
+        }
         try writeNote(rename.url, summary, speakerNames)
         if rename.follow { RenamedNoteFollower.follow(rename.url, in: vault) }
         if case .failed(let reason) = summary {
@@ -417,12 +421,12 @@ final class MeetingProcessor {
         }
     }
 
-    /// Summary and title for the rename. A missing title is not an error: the note keeps its
-    /// provisional name.
+    /// Summary and title for the rename, and the requests made for them if the Summary log is on.
+    /// A missing title is not an error: the note keeps its provisional name.
     private func summarize(
         _ transcript: Transcript, language: String?, personalNotes: String, participants: [String], wantsTitle: Bool,
         template: Template, profile: ProviderProfile?, vocabulary: Vocabulary
-    ) async -> (MeetingNote.SummaryOutcome, String?) {
+    ) async -> (MeetingNote.SummaryOutcome, String?, SummaryRequests?) {
         var profile = profile
         var isTestProfile = false
         #if DEBUG
@@ -432,14 +436,15 @@ final class MeetingProcessor {
         }
         #endif
         // No Profile chosen ("Transcript" in the menu): no Summary and no Template, only the Transcript.
-        guard let profile else { return (.transcriptOnly, nil) }
+        guard let profile else { return (.transcriptOnly, nil, nil) }
         // A Profile deleted after the Meeting started has lost its key in the Keychain too.
         guard isTestProfile || AppSettings.summaryProfiles.contains(where: { $0.id == profile.id }) else {
-            return (.failed(reason: String(localized: "the Profile \"\(profile.displayName)\" was deleted: choose another one in the menu and Retry.")), nil)
+            return (.failed(reason: String(localized: "the Profile \"\(profile.displayName)\" was deleted: choose another one in the menu and Retry.")), nil, nil)
         }
         guard !transcript.paragraphs.isEmpty else {
-            return (.failed(reason: String(localized: "there is no speech in the Recording.")), nil)
+            return (.failed(reason: String(localized: "there is no speech in the Recording.")), nil, nil)
         }
+        let log = AppSettings.keepSummaryLog ? SummaryRequests(recorder: SummaryLog.Recorder(), profile: profile) : nil
         let started = ContinuousClock.now
         logger.notice("Summary started: \(transcript.paragraphs.count) paragraphs, model \(profile.model, privacy: .public)")
         do {
@@ -448,16 +453,39 @@ final class MeetingProcessor {
                 template: template, personalNotes: personalNotes, transcript: transcript, meetingLanguage: language,
                 vocabulary: vocabulary, userName: NSFullUserName(), participants: participants
             )
-            let text = try await Summarizer(client: client, maxContextTokens: profile.maxContextTokens).summarize(prompt)
+            let text = try await Summarizer(client: client, maxContextTokens: profile.maxContextTokens, log: log?.recorder)
+                .summarize(prompt)
             logger.notice("Summary written in \(secondsSince(started), privacy: .public)")
+            let titleClient = log.map { client.recording(into: $0.recorder, as: .title) } ?? client
             let reply = wantsTitle
-                ? try? await client.complete(MeetingTitle.request(summary: text, language: prompt.summaryLanguage, vocabulary: vocabulary))
+                ? try? await titleClient.complete(MeetingTitle.request(summary: text, language: prompt.summaryLanguage, vocabulary: vocabulary))
                 : nil
-            return (.written(text: text, template: template.name, provider: profile.displayName), reply.flatMap(MeetingTitle.clean))
+            return (.written(text: text, template: template.name, provider: profile.displayName), reply.flatMap(MeetingTitle.clean), log)
         } catch {
             logger.error("Summary not generated after \(secondsSince(started), privacy: .public): \(error.localizedDescription, privacy: .public)")
-            return (.failed(reason: error.localizedDescription), nil)
+            return (.failed(reason: error.localizedDescription), nil, log)
         }
+    }
+
+    /// The requests of one Summary, with the Profile that made them.
+    private struct SummaryRequests {
+        let recorder: SummaryLog.Recorder
+        let profile: ProviderProfile
+    }
+
+    /// Writes the Summary's requests to the Summary log, under the note's name after the rename.
+    /// A Summary that never reached the model leaves nothing.
+    private func writeSummaryLog(
+        _ log: SummaryRequests, summary: MeetingNote.SummaryOutcome, noteURL: URL, template: String, record: ProcessingRecord
+    ) async {
+        let calls = await log.recorder.calls
+        guard !calls.isEmpty else { return }
+        let error: String? = if case .failed(let reason) = summary { reason } else { nil }
+        SummaryLogStorage.write(SummaryLog.Entry(
+            takkuID: record.takkuID, meetingNote: noteURL.deletingPathExtension().lastPathComponent,
+            meetingStartedAt: record.startedAt, template: template, profile: log.profile, error: error, calls: calls,
+            writtenAt: Date()
+        ))
     }
 
     // MARK: - State on disk

@@ -4,6 +4,10 @@ What changes in each version of Takku, newest first. **Before you update** lists
 
 Takku was called Steno up to 0.2.1.
 
+## Unreleased
+
+- **Summary log**: Takku keeps a copy of every request it sends the model for a Summary, and of every reply, in `~/.takku/summary-log/`: one JSON file per Summary, Retry included, also when it fails. Use it to improve your Templates: write what was wrong in the `comment` field at the top of a file, then give a few files to a model you trust and ask what to change. Up to 5 MB, the oldest go first. It is on by default; turn it off, see how much it takes or delete it in *Settings → Recordings*. Takku never reads it, and *Report a problem…* never includes it.
+
 ## 1.4.1 (2026-10-20)
 
 - **Fix: notes named after the wrong calendar event.** A meeting started a few minutes before the next call, or at the same time as other calls, could take the other event's name and participants. Takku still picks an event at the start, and while recording the menu now has *Calendar event*: every event in progress at the start, with its time, and *None*. Picking another one gives the note its name and participants; with *None* the Summary gives the title.

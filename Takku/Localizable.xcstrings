@@ -71,12 +71,12 @@
         }
       }
     },
-    "About 20 MB per hour of Meeting. Notes and Transcripts stay in the Vault: without the audio, Retry makes only the Summary again.": {
+    "About 20 MB per hour of Meeting. Notes and Transcripts stay in the Vault: without the audio, Retry makes only the Summary again. The Summary log keeps what was sent to the model and its replies, in ~/.takku/summary-log, to improve the Templates: up to 5 MB, the oldest go first.": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Circa 20 MB per ora di riunione. Note e trascrizioni restano nel Vault: senza l'audio, Riprova rifà solo il riepilogo."
+            "value": "Circa 20 MB per ora di riunione. Note e trascrizioni restano nel Vault: senza l'audio, Riprova rifà solo il riepilogo. Il log dei Riepiloghi tiene ciò che è stato mandato al modello e le sue risposte, in ~/.takku/summary-log, per migliorare i Template: fino a 5 MB, i più vecchi se ne vanno per primi."
           }
         }
       }
@@ -241,12 +241,32 @@
         }
       }
     },
+    "Delete log": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancella log"
+          }
+        }
+      }
+    },
     "Delete the audio of all concluded Meetings?": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "Cancellare l'audio di tutte le riunioni concluse?"
+          }
+        }
+      }
+    },
+    "Delete the Summary log?": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancellare il log dei Riepiloghi?"
           }
         }
       }
@@ -345,12 +365,32 @@
         }
       }
     },
+    "It cannot be undone. Notes and Transcripts in the Vault are not touched.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non si può annullare. Note e trascrizioni nel Vault non vengono toccate."
+          }
+        }
+      }
+    },
     "JSON, e.g. {\"reasoning_effort\": \"xhigh\"}": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
             "value": "JSON, es. {\"reasoning_effort\": \"xhigh\"}"
+          }
+        }
+      }
+    },
+    "Keep a Summary log": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tieni un log dei Riepiloghi"
           }
         }
       }
@@ -1106,6 +1146,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ferma riunione    ⌃⌥⌘R"
+          }
+        }
+      }
+    },
+    "Summary log": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log dei Riepiloghi"
           }
         }
       }

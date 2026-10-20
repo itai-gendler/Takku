@@ -19,6 +19,8 @@ enum AppSettings {
     static let summaryProfilesKey = "summaryProfiles"
     private static let defaultTemplateKey = "defaultTemplate"
     private static let retentionDaysKey = "retentionDays"
+    /// Also used by `@AppStorage` in Settings.
+    static let keepSummaryLogKey = "keepSummaryLog"
     /// Also used by `@AppStorage` in the menu and in Settings, so the two stay in sync.
     static let transcriptionModelKey = "transcriptionModel"
     /// Also used by `@AppStorage` in the menu and in Settings, so the two stay in sync.
@@ -31,6 +33,7 @@ enum AppSettings {
             checkForUpdatesKey: true,
             defaultTemplateKey: Template.defaultName,
             retentionDaysKey: Retention.days,
+            keepSummaryLogKey: true,
         ])
     }
 
@@ -48,6 +51,11 @@ enum AppSettings {
     static var retentionDays: Int {
         get { max(1, UserDefaults.standard.integer(forKey: retentionDaysKey)) }
         set { UserDefaults.standard.set(max(1, newValue), forKey: retentionDaysKey) }
+    }
+
+    /// Copy every Summary's requests and replies to the Summary log.
+    static var keepSummaryLog: Bool {
+        UserDefaults.standard.bool(forKey: keepSummaryLogKey)
     }
 
     #if DEBUG

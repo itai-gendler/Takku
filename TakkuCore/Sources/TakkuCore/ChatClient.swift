@@ -72,7 +72,7 @@ public struct ChatClient: Sendable {
     private let model: String
     private let reasoning: ProviderProfile.ReasoningEffort?
     private let extraParameters: String?
-    private let transport: Transport
+    private var transport: Transport
 
     public init(
         baseURL: URL, apiKey: String?, model: String, reasoning: ProviderProfile.ReasoningEffort? = nil,
@@ -84,6 +84,31 @@ public struct ChatClient: Sendable {
         self.reasoning = reasoning
         self.extraParameters = extraParameters
         self.transport = transport
+    }
+
+    /// The same client, with every request and its reply also copied to the Summary log as `kind`.
+    public func recording(into log: SummaryLog.Recorder, as kind: SummaryLog.Call.Kind) -> ChatClient {
+        var client = self
+        let transport = self.transport
+        client.transport = { request in
+            let started = ContinuousClock.now
+            let seconds = { (ContinuousClock.now - started) / .seconds(1) }
+            do {
+                let (data, response) = try await transport(request)
+                await log.append(SummaryLog.Call(
+                    kind: kind, request: request.httpBody ?? Data(), response: data, status: response.statusCode,
+                    seconds: seconds(), error: nil
+                ))
+                return (data, response)
+            } catch {
+                await log.append(SummaryLog.Call(
+                    kind: kind, request: request.httpBody ?? Data(), response: nil, status: nil,
+                    seconds: seconds(), error: error.localizedDescription
+                ))
+                throw error
+            }
+        }
+        return client
     }
 
     public func complete(_ messages: [ChatMessage]) async throws -> String {
