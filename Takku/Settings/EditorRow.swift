@@ -18,7 +18,7 @@ struct EditorRow: View {
                 }
                 ForEach(others, id: \.self) { app in
                     Button {
-                        chosen = Bundle(url: app)?.bundleIdentifier ?? ""
+                        choose(app)
                     } label: {
                         AppLabel(app: app, isDefault: app == editors.defaultApp)
                     }
@@ -33,11 +33,19 @@ struct EditorRow: View {
             Text("The chosen editor is no longer installed: notes open with the one shown above.")
                 .foregroundStyle(.secondary)
         }
-        if editor != .obsidian {
-            // Obsidian saves as you type; other editors may hold Personal notes the Summary never sees.
-            Text("Takku reads the note from disk: turn on autosave in your editor.")
-                .foregroundStyle(.secondary)
-        }
+    }
+
+    /// Obsidian saves as you type; another editor may hold Personal notes the Summary never sees,
+    /// so a notification says so once, when it is chosen.
+    private func choose(_ app: URL) {
+        let bundleID = Bundle(url: app)?.bundleIdentifier ?? ""
+        guard bundleID != chosen else { return }
+        chosen = bundleID
+        Notifications.shared.notify(
+            title: String(localized: "Turn on autosave in \(TextEditors.name(of: app))"),
+            body: String(localized: "Takku reads your Personal notes from disk: those not yet saved do not reach the Summary."),
+            note: nil
+        )
     }
 
     private var editor: Editor {

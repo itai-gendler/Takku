@@ -1240,12 +1240,12 @@
         }
       }
     },
-    "Takku reads the note from disk: turn on autosave in your editor.": {
+    "Takku reads your Personal notes from disk: those not yet saved do not reach the Summary.": {
       "localizations": {
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Takku legge la nota dal disco: attiva il salvataggio automatico nel tuo editor."
+            "value": "Takku legge le note personali dal disco: quelle non ancora salvate non arrivano al Riepilogo."
           }
         }
       }
@@ -1422,6 +1422,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Trascrizione non riuscita: la Registrazione è salvata, si potrà riprovare."
+          }
+        }
+      }
+    },
+    "Turn on autosave in %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attiva il salvataggio automatico in %@"
           }
         }
       }
