@@ -14,7 +14,10 @@ enum AppSettings {
     static let suggestCallsKey = "suggestCalls"
     /// Also used by `@AppStorage` in Settings.
     static let checkForUpdatesKey = "checkForUpdates"
-    private static let openInObsidianKey = "openInObsidian"
+    private static let opensNotesKey = "opensNotes"
+    /// Bundle ID of the Editor chosen in Settings, empty if never chosen. Also used by `@AppStorage`
+    /// in Settings and in the menu.
+    static let editorKey = "editor"
     /// Also used by `@AppStorage` in the menu: it must follow Profiles added or deleted in Settings.
     static let summaryProfilesKey = "summaryProfiles"
     private static let defaultTemplateKey = "defaultTemplate"
@@ -28,7 +31,7 @@ enum AppSettings {
 
     static func registerDefaults() {
         UserDefaults.standard.register(defaults: [
-            openInObsidianKey: true,
+            opensNotesKey: true,
             suggestCallsKey: false,
             checkForUpdatesKey: true,
             defaultTemplateKey: Template.defaultName,
@@ -98,9 +101,14 @@ enum AppSettings {
         UserDefaults.standard.bool(forKey: checkForUpdatesKey)
     }
 
-    /// Off only in automated tests, which write to a test Vault Obsidian does not know.
-    static var openInObsidian: Bool {
-        UserDefaults.standard.bool(forKey: openInObsidianKey)
+    /// Off only in automated tests, which write to a test Vault no Editor should open.
+    static var opensNotes: Bool {
+        UserDefaults.standard.bool(forKey: opensNotesKey)
+    }
+
+    /// See `Editor.current` for the Editor actually in use.
+    static var chosenEditor: String? {
+        UserDefaults.standard.string(forKey: editorKey)
     }
 
     static var summaryProfiles: [ProviderProfile] {

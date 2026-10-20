@@ -110,14 +110,14 @@ final class MeetingProcessor {
             lastError = String(localized: "Meeting note not found in the Vault.")
             return
         }
-        Vault.openInObsidian(note)
+        Vault.openInEditor(note)
     }
 
-    /// In Obsidian like the notes; the copy in the Recording folder (no Vault) with the default app.
+    /// In the Editor like the notes; the copy in the Recording folder (no Vault) with the default app.
     func openLastTranscript() {
         guard let url = lastTranscriptURL else { return }
         if let vault = Vault.configured, vault.contains(url) {
-            Vault.openInObsidian(url)
+            Vault.openInEditor(url)
         } else {
             NSWorkspace.shared.open(url)
         }
@@ -414,7 +414,7 @@ final class MeetingProcessor {
         let wasShownInObsidian = vault.isShownInObsidian(noteURL) ?? true
         do {
             let renamed = try vault.rename(noteURL, to: newName)
-            return (renamed, wasShownInObsidian && AppSettings.openInObsidian)
+            return (renamed, wasShownInObsidian && AppSettings.opensNotes)
         } catch {
             logger.error("Renaming the note failed: \(error, privacy: .public)")
             return (noteURL, false)

@@ -1,4 +1,5 @@
 import AppKit
+import TakkuCore
 import os
 
 private let logger = Logger(subsystem: "app.takku.takku", category: "vault")
@@ -7,10 +8,10 @@ private let logger = Logger(subsystem: "app.takku.takku", category: "vault")
 /// note. When the user was looking at the Meeting note, Takku shows it again under its new name,
 /// checking in `.obsidian/workspace.json` that Obsidian really shows it. Slow but correct: it
 /// waits for Obsidian to notice the rename, and if Obsidian is not in front it waits for the user
-/// to come back to it instead of bringing it forward in the middle of something else.
+/// to come back to it instead of bringing it forward in the middle of something else. Only for
+/// Obsidian: Takku cannot tell what another Editor shows, and Zed follows the rename by itself.
 @MainActor
 enum RenamedNoteFollower {
-    private static let obsidianBundleID = "md.obsidian"
     /// Time for Obsidian to notice the rename and save its layout.
     private static let settleTime: Duration = .seconds(3)
     private static let maxAttempts = 3
@@ -21,6 +22,7 @@ enum RenamedNoteFollower {
 
     static func follow(_ note: URL, in vault: Vault) {
         pending?.cancel()
+        guard Editor.current == .obsidian else { return }
         pending = Task {
             try? await Task.sleep(for: settleTime)
             for _ in 0..<maxAttempts {
@@ -53,10 +55,10 @@ enum RenamedNoteFollower {
     private static func waitUntilObsidianIsInFront() async -> Bool {
         let deadline = Date().addingTimeInterval(maxWait)
         while !Task.isCancelled, Date() < deadline {
-            guard !NSRunningApplication.runningApplications(withBundleIdentifier: obsidianBundleID).isEmpty else {
+            guard !NSRunningApplication.runningApplications(withBundleIdentifier: Editor.obsidianBundleID).isEmpty else {
                 return false
             }
-            if NSWorkspace.shared.frontmostApplication?.bundleIdentifier == obsidianBundleID { return true }
+            if NSWorkspace.shared.frontmostApplication?.bundleIdentifier == Editor.obsidianBundleID { return true }
             try? await Task.sleep(for: .seconds(1))
         }
         return false

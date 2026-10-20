@@ -61,7 +61,7 @@ class Run:
             os.remove(outcome)
         before = {p: os.path.getmtime(p) for p in self.caches()}
         argv = [APP, "-vaultPath", self.vault, "-dataDirectory", self.data,
-                "-testSummaryBaseURL", f"http://127.0.0.1:{PORT}{llm}", "-openInObsidian", "NO",
+                "-testSummaryBaseURL", f"http://127.0.0.1:{PORT}{llm}", "-opensNotes", "NO",
                 "-useCalendar", "NO", "-suggestCalls", "NO", "-ApplePersistenceIgnoreState", "YES", *args]
         if mode == "transcribe":
             argv += ["-transcribeRecording", self.folder]

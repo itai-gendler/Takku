@@ -53,6 +53,15 @@ Before starting: Takku running from the menu bar (notebook icon), Vault and a Su
 - [ ] **Summary log**: after a Meeting, `~/.takku/summary-log/` has one JSON file named date, Template and model, with `about` and a `single` and a `title` call whose request has the Transcript; no Profile address in it. A Retry adds a second file. Settings → *Recordings*: the log's size matches the folder, *Delete log* asks for confirmation and brings it to zero; with *Keep a Summary log* off a Retry adds nothing.
 - [x] **Retry**: turn off the internet connection, record a short Meeting → "Processing failed" and ⚠️ in the note and in the menu; reconnect and *Retry* → Summary generated.
 
+## Editor
+
+- [ ] **Default**: a Mac where *Editor* was never changed → Settings → *Obsidian Vault* → *Editor* says *Obsidian*, with no line below it; every note opens in Obsidian as before.
+- [ ] **Zed**: *Editor* → Zed → the autosave line appears. *Start meeting* → the note opens in Zed at once; *Recent meetings* shows *Open Vault in Zed…* and it opens the vault as a project; the "Summary ready" click and *Open note* open the note in Zed.
+- [ ] **Rename in Zed**: with the vault open in Zed and the note in front, let a Meeting finish → the Zed tab takes the new name; Takku does not bring Obsidian forward.
+- [ ] **Editor without folders**: *Editor* → TextEdit → *Recent meetings* shows *Show Vault in Finder…* and the Finder selects the vault.
+- [ ] **Back to Obsidian**: *Editor* → Obsidian → the autosave line disappears, *Show all in Obsidian…* is back.
+- [ ] **Uninstalled editor**: `defaults write app.takku.takku editor com.example.missing` → *Editor* says *Obsidian* with the "no longer installed" line; notes open in Obsidian.
+
 ## Echo residue
 
 - [ ] **Speakers without headphones**: a call on the Mac speakers where you mostly listen and reply now and then → the Transcript has your replies as Me, and no short English or nonsense Me sentences ("Oh yeah", "The five.") while the others talk.

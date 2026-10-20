@@ -96,7 +96,11 @@ Request parameters the user writes in a Provider profile, sent to the Provider a
 _Avoid_: custom body, overrides, advanced settings
 
 **Vault** (`Vault`):
-The Obsidian folder where Takku writes Meeting notes and Transcripts.
+The Obsidian folder where Takku writes Meeting notes and Transcripts, in Obsidian's format (frontmatter, `[[links]]`) whatever the Editor.
+
+**Editor** (`Editor`):
+The app the user chooses to open the Meeting notes and Transcripts of the Vault: Obsidian or another Markdown editor. Obsidian unless the user chooses otherwise.
+_Avoid_: viewer, opener, note app
 
 **Hook** (`Hook`):
 An executable written by the user, in `~/.takku/hooks/`, that Takku runs when a Meeting completes Processing, to take the Meeting note and the Transcript elsewhere.

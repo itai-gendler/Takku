@@ -147,6 +147,13 @@ How to write one, how to run several, and a ready-made Hook that copies every me
 
 **A Summary from a subscription you already have.** If you pay for Copilot, Claude, Codex or another assistant with a command-line tool (or your company allows only that one), record with *Transcript* only and let a Hook ask that tool for the Summary. You lose what Takku does around its own Summary: the Template, the Vocabulary in the prompt, the Speaker names taken from the Summary, and the title and rename of the note. [`examples/hooks/copilot.sh`](examples/hooks/copilot.sh) does it with GitHub Copilot CLI, with every tool disabled, and writes the Summary into a file next to the note; changing the `copilot` command adapts it to another CLI. It sends only the meetings whose note has the property `copilot: true`: a meeting with a customer is the customer's data, so mark it only if the customer allowed it.
 
+### Using another editor
+
+Takku is made for Obsidian, but the notes are plain Markdown: *Settings → Obsidian Vault → Editor* opens them in another app, such as Zed or VS Code. The notes stay the same, `[[links]]` included. *Recent meetings* then offers *Open Vault in Zed…* instead of *Show all in Obsidian…*.
+
+- **Turn on autosave** in the editor. Takku reads your Personal notes from disk when it writes the Summary: notes not yet saved are left out. In Zed, set `"autosave": "on_focus_change"`.
+- **Keep the vault open** as a project (in Zed, *Open Vault in Zed…*). Notes then open in that window, and Zed follows the note when Takku renames it at the end; other editors may show it as deleted, and the "Summary ready" notification opens it under its new name.
+
 ### Where your data is
 
 - **Notes and Transcripts**: in your vault, as plain Markdown.

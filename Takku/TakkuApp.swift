@@ -191,6 +191,8 @@ private struct CalendarEventMenu: View {
 /// The last five Meetings: open the note, Retry.
 private struct RecentMeetingsMenu: View {
     let controller: MeetingController
+    /// The *Show all* item names the Editor chosen in Settings.
+    @AppStorage(AppSettings.editorKey) private var editor = ""
 
     var body: some View {
         Menu("Recent meetings") {
@@ -211,7 +213,8 @@ private struct RecentMeetingsMenu: View {
             }
             if let vault = Vault.configured {
                 Divider()
-                Button("Show all in Obsidian…") { vault.showMeetingsInObsidian() }
+                let showAll = Vault.ShowAll(Editor.resolved(chosen: editor))
+                Button(showAll.title) { vault.show(showAll) }
             }
         }
     }

@@ -211,6 +211,16 @@
         }
       }
     },
+    "Default app": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App predefinita"
+          }
+        }
+      }
+    },
     "Default Template": {
       "localizations": {
         "it": {
@@ -307,6 +317,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "1 termine"
+          }
+        }
+      }
+    },
+    "Editor": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editor"
           }
         }
       }
@@ -849,6 +869,16 @@
         }
       }
     },
+    "Open Vault in %@…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri il Vault in %@…"
+          }
+        }
+      }
+    },
     "Paste the key here": {
       "localizations": {
         "it": {
@@ -1110,6 +1140,16 @@
         }
       }
     },
+    "Show Vault in Finder…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostra il Vault nel Finder…"
+          }
+        }
+      }
+    },
     "Slightly more accurate; more memory, slower to prepare.": {
       "localizations": {
         "it": {
@@ -1200,6 +1240,16 @@
         }
       }
     },
+    "Takku reads the note from disk: turn on autosave in your editor.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takku legge la nota dal disco: attiva il salvataggio automatico nel tuo editor."
+          }
+        }
+      }
+    },
     "Template": {
       "localizations": {
         "it": {
@@ -1226,6 +1276,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "Prova connessione"
+          }
+        }
+      }
+    },
+    "The chosen editor is no longer installed: notes open with the one shown above.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'editor scelto non è più installato: le note si aprono con quello indicato sopra."
           }
         }
       }

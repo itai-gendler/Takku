@@ -292,7 +292,7 @@ final class MeetingController {
         templateName = AppSettings.defaultTemplate
     }
 
-    /// Creates the Meeting note in the Vault and opens it in Obsidian. If that fails the Meeting
+    /// Creates the Meeting note in the Vault and opens it in the Editor. If that fails the Meeting
     /// goes on anyway: the note will be created at the end of Processing.
     private func createMeetingNote(takkuID: UUID, startedAt: Date) -> URL? {
         guard let vault = Vault.configured else { return nil }
@@ -303,8 +303,8 @@ final class MeetingController {
             // Only with a note: without one there is nothing to point at another event.
             calendarEvents = events
             calendarEvent = events.first
-            if AppSettings.openInObsidian {
-                Vault.openNewFileInObsidian(url)
+            if AppSettings.opensNotes {
+                Vault.openNewFileInEditor(url)
             }
             return url
         } catch {
@@ -328,7 +328,7 @@ final class MeetingController {
             calendarEvent = event
             currentNoteURL = url
             processor.noteMoved(takkuID: currentTakkuID, to: url)
-            if url != noteURL, wasShownInObsidian, AppSettings.openInObsidian {
+            if url != noteURL, wasShownInObsidian, AppSettings.opensNotes {
                 RenamedNoteFollower.follow(url, in: vault)
             }
         } catch {
@@ -357,7 +357,7 @@ final class MeetingController {
     /// - `open Takku.app --args -regenerateMeeting <takku_id> -regenerateTemplate <name>` retries a Meeting
     ///   (only the Summary if its audio is deleted) with that Template and the active Profile;
     /// - always together with `-vaultPath <folder>`, `-testSummaryBaseURL <url>` and `-dataDirectory <folder>`,
-    ///   otherwise the test refuses to start; `-openInObsidian NO` does not open Obsidian.
+    ///   otherwise the test refuses to start; `-opensNotes NO` does not open the Editor.
     func runSmokeTestIfRequested() async {
         let arguments = UserDefaults.standard.volatileDomain(forName: UserDefaults.argumentDomain)
         let isTest = ["smokeTestSeconds", "transcribeRecording", "regenerateMeeting"].contains { arguments[$0] != nil }

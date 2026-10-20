@@ -4,7 +4,7 @@ import os
 
 private let logger = Logger(subsystem: "app.takku.takku", category: "notifications")
 
-/// Takku's notifications. Clicking "Summary ready" opens the note in Obsidian; the call
+/// Takku's notifications. Clicking "Summary ready" opens the note in the Editor; the call
 /// suggestions have a button that starts or stops the Meeting.
 @MainActor
 final class Notifications: NSObject, UNUserNotificationCenterDelegate {
@@ -97,7 +97,7 @@ final class Notifications: NSObject, UNUserNotificationCenterDelegate {
             if let action {
                 onAction(action)
             } else if let path {
-                Vault.openInObsidian(URL(filePath: path))
+                Vault.openInEditor(URL(filePath: path))
             }
         }
     }

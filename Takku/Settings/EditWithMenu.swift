@@ -35,6 +35,15 @@ struct TextEditors {
             .replacingOccurrences(of: ".app", with: "")
     }
 
+    /// Whether the app declares it opens folders, as Zed and VS Code do: it can open the whole Vault.
+    static func opensFolders(_ app: URL) -> Bool {
+        let types = Bundle(url: app)?.object(forInfoDictionaryKey: "CFBundleDocumentTypes") as? [[String: Any]] ?? []
+        return types.contains { type in
+            let contentTypes = type["LSItemContentTypes"] as? [String] ?? []
+            return contentTypes.contains("public.folder") || contentTypes.contains("public.directory")
+        }
+    }
+
     private static let textTypes: Set<String> = [
         "net.daringfireball.markdown", "public.markdown", "public.plain-text", "public.text", "public.utf8-plain-text",
     ]
@@ -70,18 +79,28 @@ struct EditWithMenu: View {
                 Button {
                     edit(app)
                 } label: {
-                    Label {
-                        if app == editors.defaultApp {
-                            Text("\(TextEditors.name(of: app)) (default)")
-                        } else {
-                            Text(verbatim: TextEditors.name(of: app))
-                        }
-                    } icon: {
-                        Image(nsImage: NSWorkspace.shared.icon(forFile: app.path(percentEncoded: false)))
-                    }
+                    AppLabel(app: app, isDefault: app == editors.defaultApp)
                 }
             }
         }
         .fixedSize()
+    }
+}
+
+/// An app's name with its icon, "(default)" after the system's default for Markdown.
+struct AppLabel: View {
+    let app: URL
+    var isDefault = false
+
+    var body: some View {
+        Label {
+            if isDefault {
+                Text("\(TextEditors.name(of: app)) (default)")
+            } else {
+                Text(verbatim: TextEditors.name(of: app))
+            }
+        } icon: {
+            Image(nsImage: NSWorkspace.shared.icon(forFile: app.path(percentEncoded: false)))
+        }
     }
 }

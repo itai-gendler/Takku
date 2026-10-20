@@ -47,6 +47,7 @@ struct SettingsView: View {
                             Button("Choose…", action: chooseVault)
                         }
                     }
+                    EditorRow()
                 }
 
                 TemplatesSection(defaultTemplate: $defaultTemplate)

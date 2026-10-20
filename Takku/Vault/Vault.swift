@@ -156,11 +156,11 @@ struct Vault {
         throw VaultError.busy(noteURL.lastPathComponent)
     }
 
-    /// Any note Takku opens replaces a pending wait to show a renamed note.
+    /// Opens a note in the Editor. Any note Takku opens replaces a pending wait to show a renamed note.
     @MainActor
-    static func openInObsidian(_ url: URL) {
+    static func openInEditor(_ url: URL) {
         RenamedNoteFollower.cancel()
-        showInObsidian(url)
+        open(url, in: .current)
     }
 
     static func showInObsidian(_ url: URL) {
@@ -169,25 +169,79 @@ struct Vault {
         NSWorkspace.shared.open(components.url!)
     }
 
-    /// Obsidian's search on this Vault, listing the Meeting notes (Transcripts excluded).
-    func showMeetingsInObsidian() {
-        var components = URLComponents(string: "obsidian://search")!
-        components.queryItems = [
-            // Obsidian knows a Vault by its folder name.
-            URLQueryItem(name: "vault", value: root.lastPathComponent),
-            URLQueryItem(name: "query", value: "[takku_id] -path:\"Meetings/Transcripts\""),
-        ]
-        NSWorkspace.shared.open(components.url!)
+    /// The *Show all* item of Recent meetings: Obsidian's search lists the Meeting notes; another
+    /// Editor gets the whole Vault if it opens folders (Zed does), otherwise the Finder shows it.
+    enum ShowAll {
+        case obsidianSearch
+        case vault(in: URL)
+        case finder
+
+        init(_ editor: Editor) {
+            switch editor {
+            case .obsidian:
+                self = .obsidianSearch
+            case .app(let bundleID):
+                if let app = Editor.appURL(bundleID), TextEditors.opensFolders(app) {
+                    self = .vault(in: app)
+                } else {
+                    self = .finder
+                }
+            case .systemDefault:
+                self = .finder
+            }
+        }
+
+        var title: String {
+            switch self {
+            case .obsidianSearch: String(localized: "Show all in Obsidian…")
+            case .vault(let app): String(localized: "Open Vault in \(TextEditors.name(of: app))…")
+            case .finder: String(localized: "Show Vault in Finder…")
+            }
+        }
+    }
+
+    func show(_ showAll: ShowAll) {
+        switch showAll {
+        case .obsidianSearch:
+            var components = URLComponents(string: "obsidian://search")!
+            components.queryItems = [
+                // Obsidian knows a Vault by its folder name.
+                URLQueryItem(name: "vault", value: root.lastPathComponent),
+                URLQueryItem(name: "query", value: "[takku_id] -path:\"Meetings/Transcripts\""),
+            ]
+            NSWorkspace.shared.open(components.url!)
+        case .vault(let app):
+            TextEditors.open(root, with: app)
+        case .finder:
+            NSWorkspace.shared.activateFileViewerSelecting([root])
+        }
     }
 
     /// Obsidian finds a file only once it has noticed it on disk: opened right after being
-    /// created, it sometimes answers "file not found".
+    /// created, it sometimes answers "file not found". Other Editors open it at once.
     @MainActor
-    static func openNewFileInObsidian(_ url: URL) {
+    static func openNewFileInEditor(_ url: URL) {
         RenamedNoteFollower.cancel()
+        let editor = Editor.current
+        guard editor == .obsidian else { return open(url, in: editor) }
         Task {
             try? await Task.sleep(for: .seconds(1))
             showInObsidian(url)
+        }
+    }
+
+    private static func open(_ url: URL, in editor: Editor) {
+        switch editor {
+        case .obsidian:
+            showInObsidian(url)
+        case .app(let bundleID):
+            if let app = Editor.appURL(bundleID) {
+                TextEditors.open(url, with: app)
+            } else {
+                NSWorkspace.shared.open(url)
+            }
+        case .systemDefault:
+            NSWorkspace.shared.open(url)
         }
     }
 

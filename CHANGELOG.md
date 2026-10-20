@@ -4,6 +4,10 @@ What changes in each version of Takku, newest first. **Before you update** lists
 
 Takku was called Steno up to 0.2.1.
 
+## Unreleased
+
+- **Open the notes in another editor**: *Settings → Obsidian Vault → Editor* chooses the app that opens the meeting notes and Transcripts, such as Zed or VS Code. Obsidian stays the default and the notes do not change. With another editor, *Recent meetings* opens the whole vault in it (or in the Finder, for editors that do not open folders). Turn on the editor's autosave: Takku reads your Personal notes from disk. More in the [README](https://github.com/mameli/Takku#using-another-editor).
+
 ## 1.5.1 (2026-10-20)
 
 - **Better Summaries**, from the Summary log of 29 real meetings:
