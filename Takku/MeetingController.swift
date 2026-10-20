@@ -38,6 +38,13 @@ final class MeetingController {
     var isMarkHotKeyAvailable: Bool { markHotKey?.isRegistered ?? false }
     /// The Recording folder of the Meeting in progress, where its Marks are saved.
     private var currentDirectory: URL?
+    /// The Meeting note of the Meeting in progress, where Takku created it; `nil` if it was not created.
+    private var currentNoteURL: URL?
+    /// The calendar events the Meeting in progress can be for, the likeliest first: the menu
+    /// offers them when the guess is wrong (back-to-back or overlapping calls).
+    private(set) var calendarEvents: [CalendarEvent] = []
+    /// The event the note is named after, `nil` for none.
+    private(set) var calendarEvent: CalendarEvent?
     /// The Marks of the Meeting in progress, in seconds from its start.
     private(set) var marks: [TimeInterval] = []
     /// For a second after a Mark the menu bar shows a star instead of the red dot.
@@ -232,12 +239,13 @@ final class MeetingController {
         currentTakkuID = started.meetingID
         currentDirectory = started.directory
         marks = []
+        currentNoteURL = createMeetingNote(takkuID: started.meetingID, startedAt: now)
         processor.meetingStarted(
             takkuID: started.meetingID,
             startedAt: now,
             templateName: templateName,
             summaryProfile: AppSettings.activeProviderProfile,
-            noteURL: createMeetingNote(takkuID: started.meetingID, startedAt: now),
+            noteURL: currentNoteURL,
             transcription: transcription
         )
         startTicker()
@@ -277,6 +285,9 @@ final class MeetingController {
         }
         currentTakkuID = nil
         currentDirectory = nil
+        currentNoteURL = nil
+        calendarEvents = []
+        calendarEvent = nil
         marks = []
         templateName = AppSettings.defaultTemplate
     }
@@ -287,8 +298,11 @@ final class MeetingController {
         guard let vault = Vault.configured else { return nil }
         do {
             // Read after the recording has started: the calendar never delays it.
-            let event = MeetingCalendar.eventInProgress(at: startedAt)
-            let url = try vault.createMeetingNote(takkuID: takkuID, startedAt: startedAt, event: event)
+            let events = MeetingCalendar.eventsInProgress(at: startedAt)
+            let url = try vault.createMeetingNote(takkuID: takkuID, startedAt: startedAt, event: events.first)
+            // Only with a note: without one there is nothing to point at another event.
+            calendarEvents = events
+            calendarEvent = events.first
             if AppSettings.openInObsidian {
                 Vault.openNewFileInObsidian(url)
             }
@@ -297,6 +311,29 @@ final class MeetingController {
             logger.error("Meeting note not created: \(error, privacy: .public)")
             recordingError = String(localized: "\(error.localizedDescription) The note will be created at the end of Processing.")
             return nil
+        }
+    }
+
+    /// From the menu: the Meeting in progress is for another calendar event, or for none. The note
+    /// takes its name and participants (see `Vault.switchEvent`); Obsidian is shown the renamed note
+    /// if it was showing it.
+    func chooseCalendarEvent(_ event: CalendarEvent?) {
+        guard event != calendarEvent, let currentTakkuID, let startedAt, let vault = Vault.configured,
+              let noteURL = vault.findMeetingNote(takkuID: currentTakkuID, expected: currentNoteURL)
+        else { return }
+        // Read before the rename: afterwards Obsidian may already show another note.
+        let wasShownInObsidian = vault.isShownInObsidian(noteURL) ?? true
+        do {
+            let url = try vault.switchEvent(of: noteURL, startedAt: startedAt, from: calendarEvent, to: event)
+            calendarEvent = event
+            currentNoteURL = url
+            processor.noteMoved(takkuID: currentTakkuID, to: url)
+            if url != noteURL, wasShownInObsidian, AppSettings.openInObsidian {
+                RenamedNoteFollower.follow(url, in: vault)
+            }
+        } catch {
+            logger.error("Switching the calendar event failed: \(error, privacy: .public)")
+            recordingError = error.localizedDescription
         }
     }
 

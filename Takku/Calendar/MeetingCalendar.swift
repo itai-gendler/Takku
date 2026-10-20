@@ -21,10 +21,10 @@ enum MeetingCalendar {
         }
     }
 
-    /// The event in progress (see `CalendarEvent.inProgress`), `nil` if the calendar is off,
-    /// not allowed, or there is none.
-    static func eventInProgress(at now: Date) -> CalendarEvent? {
-        guard AppSettings.useCalendar, isAuthorized else { return nil }
+    /// The events a Meeting starting now can be for, the likeliest first (see
+    /// `CalendarEvent.candidates`); none if the calendar is off or not allowed.
+    static func eventsInProgress(at now: Date) -> [CalendarEvent] {
+        guard AppSettings.useCalendar, isAuthorized else { return [] }
         let store = EKEventStore()
         let predicate = store.predicateForEvents(
             withStart: now, end: now.addingTimeInterval(CalendarEvent.earlyStart), calendars: nil
@@ -40,14 +40,15 @@ enum MeetingCalendar {
                 participants: (event.attendees ?? []).compactMap(participantName)
             )
         }
-        return CalendarEvent.inProgress(events, at: now)
+        return CalendarEvent.candidates(events, at: now)
     }
 
     /// The name of a person invited, or their email without one, made readable
-    /// (`CalendarEvent.participantName`); `nil` for the user, rooms and resources.
+    /// (`CalendarEvent.participantName`); `nil` for the user, rooms, resources and groups
+    /// (distribution lists say nothing about who is in the call).
     private static func participantName(_ participant: EKParticipant) -> String? {
-        guard !participant.isCurrentUser, participant.participantType != .room,
-              participant.participantType != .resource
+        guard !participant.isCurrentUser,
+              ![.room, .resource, .group].contains(participant.participantType)
         else { return nil }
         let address = participant.url.absoluteString
         return CalendarEvent.participantName(

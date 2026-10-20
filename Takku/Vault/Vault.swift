@@ -48,6 +48,20 @@ struct Vault {
         return url
     }
 
+    /// Points the Meeting note at another calendar event the user picked while recording, or at
+    /// none: its participants replace those in the note, and a note still named after the previous
+    /// event (or provisional) takes the new event's name (the provisional one without an event, so
+    /// Processing gives it a generated title). A note renamed or moved by the user keeps its name.
+    /// Returns where the note is now.
+    func switchEvent(of noteURL: URL, startedAt: Date, from previous: CalendarEvent?, to event: CalendarEvent?) throws -> URL {
+        try update(noteURL) { $0.replaceParticipants(with: event?.participants ?? []) }
+        guard isInMeetingsFolder(noteURL), let newName = VaultNaming.renamedNoteName(
+            current: noteURL.deletingPathExtension().lastPathComponent, startedAt: startedAt,
+            title: event?.title ?? VaultNaming.defaultTitle, previousTitle: previous?.title ?? VaultNaming.defaultTitle
+        ) else { return noteURL }
+        return try rename(noteURL, to: newName)
+    }
+
     /// The Meeting note: at the known path or, if the user renamed or moved it, by looking
     /// for its `takku_id` in the Meetings folder (Transcripts excluded).
     func findMeetingNote(takkuID: UUID, expected: URL?) -> URL? {

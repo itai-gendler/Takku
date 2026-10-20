@@ -399,4 +399,41 @@ struct MeetingNoteTests {
         #expect(note.content.contains("%% takku:start %%\n### Retro\nNew.\n\nFull transcript: [[T]]\n%% takku:end %%"))
         #expect(!note.content.contains("Old."))
     }
+
+    @Test("another calendar event's participants replace the list, the user's keys and notes stay")
+    func replaceParticipants() {
+        var note = MeetingNote(content: """
+            ---
+            takku_id: 6F1C2A00-0000-4000-8000-000000000001
+            date: 2026-10-04T14:30
+            tags: [meeting]
+            participants:
+              - "Wrong Person"
+            - "Unindented"
+            speakers:
+              - Speaker 1 = Mario Rossi
+            ---
+            Body.
+
+            """)
+
+        note.replaceParticipants(with: ["Mario Rossi", "Anna \"Nina\" Bianchi"])
+        #expect(note.participants == ["Mario Rossi", "Anna \"Nina\" Bianchi"])
+        #expect(note.speakerNames == [1: "Mario Rossi"])
+        #expect(note.content.hasSuffix("---\nBody.\n"))
+
+        note.replaceParticipants(with: [])
+        #expect(!note.content.contains("participants:"))
+        #expect(note.speakerNames == [1: "Mario Rossi"])
+
+        note.replaceParticipants(with: ["Mario Rossi"])
+        #expect(note.content.contains("speakers:\n  - Speaker 1 = Mario Rossi\nparticipants:\n  - \"Mario Rossi\"\n---"))
+    }
+
+    @Test("participants written at the start read back as they were")
+    func initialParticipants() {
+        let note = MeetingNote.initial(takkuID: takkuID, startedAt: startedAt, participants: ["Mario Rossi"], timeZone: rome)
+        #expect(note.content.contains("tags: [meeting]\nparticipants:\n  - \"Mario Rossi\"\n---"))
+        #expect(note.participants == ["Mario Rossi"])
+    }
 }

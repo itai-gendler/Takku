@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import TakkuCore
 
 @main
 struct TakkuApp: App {
@@ -71,6 +72,9 @@ private struct MeetingMenu: View {
             }
             if !controller.isMarkHotKeyAvailable {
                 Text("⌃⌥⌘M is already used by another app")
+            }
+            if !controller.calendarEvents.isEmpty {
+                CalendarEventMenu(controller: controller)
             }
         } else {
             Button("Start meeting    ⌃⌥⌘R") { Task { await controller.start() } }
@@ -155,6 +159,32 @@ private struct MeetingMenu: View {
             Button("Quit Takku") { NSApplication.shared.terminate(nil) }
                 .keyboardShortcut("q")
         }
+    }
+}
+
+/// The calendar event the Meeting in progress is for: Takku's guess, or another event in progress
+/// at the start (the next call, one at the same time), or none.
+private struct CalendarEventMenu: View {
+    let controller: MeetingController
+
+    var body: some View {
+        Picker("Calendar event", selection: Binding(
+            get: { controller.calendarEvent },
+            set: { controller.chooseCalendarEvent($0) }
+        )) {
+            ForEach(controller.calendarEvents, id: \.self) { event in
+                Text(verbatim: label(event)).tag(Optional(event))
+            }
+            Text("None").tag(CalendarEvent?.none)
+        }
+    }
+
+    /// "Weekly sync · 12:00–12:30": the time tells back-to-back events apart.
+    private func label(_ event: CalendarEvent) -> String {
+        let title = event.title.isEmpty ? String(localized: "Untitled event") : event.title
+        let start = event.start.formatted(date: .omitted, time: .shortened)
+        let end = event.end.formatted(date: .omitted, time: .shortened)
+        return "\(title) · \(start)–\(end)"
     }
 }
 

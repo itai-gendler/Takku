@@ -1,7 +1,7 @@
 import Foundation
 
 /// A calendar event as Takku needs it, read from EventKit by the app.
-public struct CalendarEvent: Equatable, Sendable {
+public struct CalendarEvent: Hashable, Sendable {
     public let title: String
     public let start: Date
     public let end: Date
@@ -71,13 +71,15 @@ public struct CalendarEvent: Equatable, Sendable {
     /// A Meeting started this early is still for the event: people join a few minutes before.
     public static let earlyStart: TimeInterval = 10 * 60
 
-    /// The event a Meeting starting `now` is for: not all-day, not cancelled or declined, starting
-    /// at most 10 minutes from now and not ended yet. Among several, one with participants, then
-    /// the one whose start is closest to now.
-    public static func inProgress(_ events: [CalendarEvent], at now: Date) -> CalendarEvent? {
+    /// The events a Meeting starting `now` can be for, the likeliest first: not all-day, not
+    /// cancelled or declined, starting at most 10 minutes from now and not ended yet. First those
+    /// with participants, then by the start closest to now. The first one names the note; the
+    /// others are offered in the menu, because the time alone cannot tell back-to-back or
+    /// overlapping calls apart.
+    public static func candidates(_ events: [CalendarEvent], at now: Date) -> [CalendarEvent] {
         events
             .filter { !$0.isAllDay && !$0.isSkipped && $0.start <= now.addingTimeInterval(earlyStart) && $0.end > now }
-            .min { a, b in
+            .sorted { a, b in
                 if a.participants.isEmpty != b.participants.isEmpty { return !a.participants.isEmpty }
                 return abs(a.start.timeIntervalSince(now)) < abs(b.start.timeIntervalSince(now))
             }

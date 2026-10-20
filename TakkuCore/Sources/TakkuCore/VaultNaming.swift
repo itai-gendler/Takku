@@ -11,11 +11,14 @@ public enum VaultNaming {
         "\(DateFormatter.posix("yyyy-MM-dd HHmm", timeZone: timeZone).string(from: startedAt)) - \(sanitized(title))"
     }
 
-    /// The new name of the Meeting note with the generated title, or `nil` if the user already
-    /// renamed it (it no longer has the provisional name, possibly with a " (n)" suffix).
-    public static func renamedNoteName(current: String, startedAt: Date, title: String, timeZone: TimeZone = .current) -> String? {
-        let provisional = noteName(startedAt: startedAt, title: defaultTitle, timeZone: timeZone)
-        guard current == provisional || isSuffixed(current, of: provisional) else { return nil }
+    /// The new name of the Meeting note with `title`, or `nil` if the user already renamed it: it no
+    /// longer has the name Takku gave it with `previousTitle` (the provisional one, or the calendar
+    /// event's when the user picks another event), possibly with a " (n)" suffix.
+    public static func renamedNoteName(
+        current: String, startedAt: Date, title: String, previousTitle: String = defaultTitle, timeZone: TimeZone = .current
+    ) -> String? {
+        let previous = noteName(startedAt: startedAt, title: previousTitle, timeZone: timeZone)
+        guard current == previous || isSuffixed(current, of: previous) else { return nil }
         return noteName(startedAt: startedAt, title: title, timeZone: timeZone)
     }
 

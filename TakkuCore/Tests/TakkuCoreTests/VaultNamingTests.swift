@@ -42,4 +42,19 @@ struct VaultNamingTests {
     func fileName(input: String, expected: String?) {
         #expect(VaultNaming.fileName(input) == expected)
     }
+
+    @Test("picking another calendar event renames a note still named after the previous one, not one renamed by the user")
+    func renamedFromEvent() {
+        let fromEvent = "2026-10-04 1430 - DATP Support"
+
+        #expect(VaultNaming.renamedNoteName(
+            current: fromEvent, startedAt: startedAt, title: "Weekly sync", previousTitle: "DATP Support", timeZone: rome
+        ) == "2026-10-04 1430 - Weekly sync")
+        #expect(VaultNaming.renamedNoteName(
+            current: fromEvent + " (2)", startedAt: startedAt, title: "Meeting", previousTitle: "DATP Support", timeZone: rome
+        ) == "2026-10-04 1430 - Meeting")
+        #expect(VaultNaming.renamedNoteName(
+            current: "Renamed by me", startedAt: startedAt, title: "Weekly sync", previousTitle: "DATP Support", timeZone: rome
+        ) == nil)
+    }
 }

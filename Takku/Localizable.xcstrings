@@ -2036,6 +2036,26 @@
           }
         }
       }
+    },
+    "Calendar event": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evento del calendario"
+          }
+        }
+      }
+    },
+    "Untitled event": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evento senza titolo"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

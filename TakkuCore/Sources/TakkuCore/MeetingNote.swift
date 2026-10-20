@@ -52,9 +52,7 @@ public struct MeetingNote: Equatable, Sendable {
     public static func initial(
         takkuID: UUID, startedAt: Date, participants: [String] = [], timeZone: TimeZone = .current
     ) -> MeetingNote {
-        let participantsEntry = participants.isEmpty ? "" : "\nparticipants:" + participants.map {
-            "\n  - \"\($0.replacingOccurrences(of: "\\", with: "").replacingOccurrences(of: "\"", with: "\\\""))\""
-        }.joined()
+        let participantsEntry = participantsLines(participants).map { "\n" + $0 }.joined()
         return MeetingNote(content: """
             ---
             takku_id: \(takkuID.uuidString)
@@ -94,6 +92,20 @@ public struct MeetingNote: Equatable, Sendable {
     /// The invited participants written at the start from the calendar, as the user left them.
     public var participants: [String] {
         MarkdownLines(content).list("participants") ?? []
+    }
+
+    /// Replaces `participants` with those of another calendar event, chosen by the user while
+    /// recording; none removes the key. Where the key was, otherwise at the end of the frontmatter.
+    public mutating func replaceParticipants(with participants: [String]) {
+        var markdown = MarkdownLines(content)
+        let entry = Self.participantsLines(participants)
+        if let entryLines = Self.entryLines("participants", in: markdown) {
+            markdown.lines.replaceSubrange(entryLines, with: entry)
+        } else if !entry.isEmpty {
+            if markdown.frontmatterClose == nil { markdown.lines.insert(contentsOf: ["---", "---"], at: 0) }
+            markdown.lines.insert(contentsOf: entry, at: markdown.frontmatterClose!)
+        }
+        content = markdown.text
     }
 
     /// Replaces the text between the Managed section markers with `body`.
@@ -200,10 +212,21 @@ public struct MeetingNote: Equatable, Sendable {
         content = markdown.text
     }
 
-    /// The lines of a frontmatter entry, including the indented lines of a multi-line value.
+    /// The `participants` entry as YAML lines, quoted; none without participants.
+    private static func participantsLines(_ participants: [String]) -> [String] {
+        participants.isEmpty ? [] : ["participants:"] + participants.map {
+            "  - \"\($0.replacingOccurrences(of: "\\", with: "").replacingOccurrences(of: "\"", with: "\\\""))\""
+        }
+    }
+
     private static func entryLines(_ key: TakkuKey, in markdown: MarkdownLines) -> Range<Int>? {
+        entryLines(key.rawValue, in: markdown)
+    }
+
+    /// The lines of a frontmatter entry, including the indented lines of a multi-line value.
+    private static func entryLines(_ key: String, in markdown: MarkdownLines) -> Range<Int>? {
         guard let close = markdown.frontmatterClose,
-              let line = markdown.lines[1..<close].firstIndex(where: { $0.hasPrefix("\(key.rawValue):") })
+              let line = markdown.lines[1..<close].firstIndex(where: { $0.hasPrefix("\(key):") })
         else { return nil }
         var next = line + 1
         while next < close, markdown.lines[next].first.map({ $0 == " " || $0 == "\t" || $0 == "-" }) == true {

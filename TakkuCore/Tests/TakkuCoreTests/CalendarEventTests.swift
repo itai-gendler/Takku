@@ -17,17 +17,17 @@ struct CalendarEventTests {
     }
 
     @Test("the event in progress or starting within 10 minutes, not one ended, later or all-day")
-    func inProgress() {
-        #expect(CalendarEvent.inProgress([event("Sync", start: -5)], at: now)?.title == "Sync")
-        #expect(CalendarEvent.inProgress([event("Early", start: 8)], at: now)?.title == "Early")
-        #expect(CalendarEvent.inProgress([event("Later", start: 15)], at: now) == nil)
-        #expect(CalendarEvent.inProgress([event("Over", start: -40)], at: now) == nil)
-        #expect(CalendarEvent.inProgress([event("Holiday", start: -600, length: 1440, allDay: true)], at: now) == nil)
+    func candidates() {
+        #expect(CalendarEvent.candidates([event("Sync", start: -5)], at: now).first?.title == "Sync")
+        #expect(CalendarEvent.candidates([event("Early", start: 8)], at: now).first?.title == "Early")
+        #expect(CalendarEvent.candidates([event("Later", start: 15)], at: now).isEmpty)
+        #expect(CalendarEvent.candidates([event("Over", start: -40)], at: now).isEmpty)
+        #expect(CalendarEvent.candidates([event("Holiday", start: -600, length: 1440, allDay: true)], at: now).isEmpty)
     }
 
     @Test("cancelled or declined events are skipped")
     func skipped() {
-        #expect(CalendarEvent.inProgress([event("Declined", start: 0, skipped: true)], at: now) == nil)
+        #expect(CalendarEvent.candidates([event("Declined", start: 0, skipped: true)], at: now).isEmpty)
     }
 
     @Test("participants written as people call them: no directory capitals, no Surname, Name, no address handles")
@@ -56,8 +56,19 @@ struct CalendarEventTests {
         let call = event("Call", start: -20)
         let next = event("Next call", start: 3)
 
-        #expect(CalendarEvent.inProgress([focus, call], at: now)?.title == "Call")
-        #expect(CalendarEvent.inProgress([call, next, focus], at: now)?.title == "Next call")
-        #expect(CalendarEvent.inProgress([focus], at: now)?.title == "Focus time")
+        #expect(CalendarEvent.candidates([focus, call], at: now).first?.title == "Call")
+        #expect(CalendarEvent.candidates([call, next, focus], at: now).first?.title == "Next call")
+        #expect(CalendarEvent.candidates([focus], at: now).first?.title == "Focus time")
+    }
+
+    @Test("all the events that fit are offered, the chosen one first: back-to-back and overlapping calls")
+    func alternatives() {
+        let ending = event("Call", start: -28)
+        let next = event("Next call", start: 2)
+        let sameTime = event("Other team's call", start: 0)
+        let later = event("Later", start: 15)
+
+        #expect(CalendarEvent.candidates([ending, later, next], at: now).map(\.title) == ["Next call", "Call"])
+        #expect(CalendarEvent.candidates([next, sameTime, ending], at: now).map(\.title) == ["Other team's call", "Next call", "Call"])
     }
 }

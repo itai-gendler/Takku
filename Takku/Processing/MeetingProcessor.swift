@@ -64,6 +64,14 @@ final class MeetingProcessor {
         save(record)
     }
 
+    /// The note of the Meeting in progress was renamed (another calendar event picked in the menu).
+    func noteMoved(takkuID: UUID, to noteURL: URL) {
+        guard var record = recordingRecords[takkuID] else { return }
+        record.noteURL = noteURL
+        recordingRecords[takkuID] = record
+        save(record)
+    }
+
     func meetingStopped(takkuID: UUID) {
         guard var record = recordingRecords.removeValue(forKey: takkuID) ?? record(takkuID) else { return }
         record.status = .queued
