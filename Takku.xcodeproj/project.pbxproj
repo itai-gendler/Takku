@@ -227,7 +227,7 @@
 			repositoryURL = "https://github.com/argmaxinc/WhisperKit";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 1.1.0;
+				minimumVersion = 1.1.1;
 			};
 		};
 		A10000000000000000000026 /* XCRemoteSwiftPackageReference "FluidAudio" */ = {
@@ -235,7 +235,7 @@
 			repositoryURL = "https://github.com/FluidInference/FluidAudio";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 0.17.5;
+				minimumVersion = 0.17.7;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

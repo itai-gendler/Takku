@@ -11,8 +11,9 @@ struct TranscriptionModel: Identifiable, Hashable, Sendable {
     enum Engine: Sendable {
         /// OpenAI Whisper through WhisperKit: `id` is the folder in argmaxinc/whisperkit-coreml.
         case whisper
-        /// NVIDIA Parakeet TDT v3 through FluidAudio.
-        case parakeet
+        /// NVIDIA Parakeet TDT v3, or a model derived from it, through FluidAudio: `id` is the
+        /// folder FluidAudio downloads it into.
+        case parakeet(AsrModelVersion)
     }
 
     let id: String
@@ -35,8 +36,12 @@ struct TranscriptionModel: Identifiable, Hashable, Sendable {
             downloadMB: 217, note: "Light and fast; more mistakes, especially in Italian."
         ),
         TranscriptionModel(
-            id: "parakeet-tdt-0.6b-v3", engine: .parakeet, name: "Parakeet v3",
+            id: "parakeet-tdt-0.6b-v3", engine: .parakeet(.v3), name: "Parakeet v3",
             downloadMB: 490, note: "Very fast and accurate; on short replies it can switch language."
+        ),
+        TranscriptionModel(
+            id: "parakeet-ultra", engine: .parakeet(.ultra), name: "Parakeet Ultra",
+            downloadMB: 632, note: "More accurate than Parakeet v3, just as fast; on short replies it can switch language."
         ),
     ]
 
@@ -80,8 +85,8 @@ final class TranscriptionModels {
         case .whisper:
             directory.appending(path: "models/argmaxinc/whisperkit-coreml/\(model.id)", directoryHint: .isDirectory)
         case .parakeet:
-            // The folder FluidAudio downloads Parakeet v3 into, under the one it is given.
-            directory.appending(path: "fluidaudio/parakeet-tdt-0.6b-v3", directoryHint: .isDirectory)
+            // FluidAudio downloads into a folder named after the model, under the one it is given.
+            directory.appending(path: "fluidaudio/\(model.id)", directoryHint: .isDirectory)
         }
     }
 
@@ -111,7 +116,7 @@ final class TranscriptionModels {
 
     func delete(_ model: TranscriptionModel) throws {
         try FileManager.default.removeItem(at: Self.folder(of: model))
-        if model.engine == .whisper {
+        if case .whisper = model.engine {
             // WhisperKit's download metadata for that model: without it a new download starts clean.
             let metadata = Self.directory.appending(path: "models/argmaxinc/whisperkit-coreml/.cache/huggingface/download/\(model.id)")
             try? FileManager.default.removeItem(at: metadata)
@@ -140,8 +145,8 @@ final class TranscriptionModels {
                 folder = try await WhisperKit.download(variant: model.id, downloadBase: Self.directory) {
                     report($0.fractionCompleted)
                 }
-            case .parakeet:
-                folder = try await AsrModels.download(to: Self.folder(of: model), version: .v3) {
+            case .parakeet(let version):
+                folder = try await AsrModels.download(to: Self.folder(of: model), version: version) {
                     report($0.fractionCompleted)
                 }
             }

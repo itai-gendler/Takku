@@ -140,8 +140,8 @@ actor LocalTranscriber {
                     logLevel: .error,
                     download: false
                 )))
-            case .parakeet:
-                let models = try await AsrModels.load(from: folder, version: .v3)
+            case .parakeet(let version):
+                let models = try await AsrModels.load(from: folder, version: version)
                 loaded = .parakeet(AsrManager(config: .default, models: models))
             }
             engine = loaded

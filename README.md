@@ -18,7 +18,7 @@ It was built as an alternative to Granola for people whose company does not allo
 - **Tells the others apart**: the Transcript shows Speaker 1, Speaker 2… by voice, and the Summary names them when the call makes clear who they are, or when you name them in the note.
 - **Knows your calendar** (optional): the note takes the name and the participants of the event in progress.
 - **Suggests when to record** (optional): a notification when a call app takes the microphone, and another when the call seems over.
-- **Transcribes locally** with OpenAI Whisper or NVIDIA Parakeet: the audio never leaves the Mac. Choose between Whisper Large v3 Turbo (default), its full version, Small and Parakeet v3 in *Settings → Transcription*.
+- **Transcribes locally** with OpenAI Whisper or NVIDIA Parakeet: the audio never leaves the Mac. Choose between Whisper Large v3 Turbo (default), its full version, Small, Parakeet v3 and Parakeet Ultra in *Settings → Transcription*.
 - **Summarises with a provider you pick**: llama.cpp, Ollama or LM Studio on your Mac, or a remote OpenAI-compatible API. You can also skip the Summary and keep only the Transcript.
 - **Writes Markdown into Obsidian**: one note per meeting, opened when the meeting starts so you can take notes, plus a separate Transcript file. Your own notes are kept and used to steer the Summary.
 - **Templates are Markdown files**: write the structure and instructions of the Summary in `~/.takku/templates/`, with any editor.
@@ -218,4 +218,4 @@ Takku is free. If it is useful to you, you can [buy me a coffee](https://buymeac
 
 MIT, see [LICENSE](LICENSE).
 
-Takku downloads and runs third-party models: OpenAI Whisper through [WhisperKit](https://github.com/argmaxinc/WhisperKit) (MIT), and [NVIDIA Parakeet TDT 0.6B v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3) (CC BY 4.0) converted by FluidInference and run through [FluidAudio](https://github.com/FluidInference/FluidAudio) (Apache 2.0).
+Takku downloads and runs third-party models: OpenAI Whisper through [WhisperKit](https://github.com/argmaxinc/WhisperKit) (MIT), and [NVIDIA Parakeet TDT 0.6B v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3) and [Parakeet Ultra](https://huggingface.co/moondream/parakeet-ultra) by moondream (both CC BY 4.0) converted by FluidInference and run through [FluidAudio](https://github.com/FluidInference/FluidAudio) (Apache 2.0).

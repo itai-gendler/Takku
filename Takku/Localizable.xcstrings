@@ -447,6 +447,16 @@
         }
       }
     },
+    "More accurate than Parakeet v3, just as fast; on short replies it can switch language.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Più preciso di Parakeet v3, altrettanto veloce; sulle risposte brevi può cambiare lingua."
+          }
+        }
+      }
+    },
     "No terms yet": {
       "localizations": {
         "it": {

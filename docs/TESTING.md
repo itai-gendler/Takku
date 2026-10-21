@@ -14,6 +14,7 @@ Before starting: Takku running from the menu bar (notebook icon), Vault and a Su
 - [ ] **First use**: move `~/Library/Application Support/Takku/Models` to the Trash, start a Meeting → the menu shows "Downloading transcription model… N%" rising, then "Preparing transcription model, first time only", then nothing; the Meeting is transcribed. The menu does not blink while the percentage changes.
 
 - [ ] **Parakeet**: with Models in the Trash, Settings → *Transcription* → *Download* on Parakeet v3 → percentage, then "Preparing…" while macOS compiles it, then *Use* and *Delete* appear. *Use* on Parakeet v3, record a Meeting with long and short replies → the Transcript is in the Meeting language, with sentences and times; note any reply in the wrong language.
+- [ ] **Parakeet Ultra**: the same steps with Parakeet Ultra; *Retry* on a Meeting transcribed with Parakeet v3 transcribes it again with Ultra. *Delete* on Ultra leaves Parakeet v3 downloaded.
 - [ ] **Transcription models**: Settings → *Transcription* → *Download* on Small → percentage, then *Use* and *Delete* appear; *Download* on the model in use → the menu shows the percentage, and nothing once it is done; *Use* → "In use" moves to Small; a Meeting is transcribed with Small; *Retry* on an older Meeting with Large v3 Turbo in use transcribes it again with Large. *Delete* on Small brings back *Download*.
 
 ## 1. Recording
