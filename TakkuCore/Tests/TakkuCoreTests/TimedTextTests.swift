@@ -36,4 +36,11 @@ struct TimedTextTests {
         #expect(sentences(from: []).isEmpty)
         #expect(sentences(from: [token(" ", 0, 0.1)]).isEmpty)
     }
+
+    @Test("a word Parakeet could not recognise is shown as [?]")
+    func unknownWord() {
+        #expect(markingUnknownWords("In Paris's Republique Square, team, the <unk>") == "In Paris's Republique Square, team, the [?]")
+        #expect(markingUnknownWords("<unk> e poi <unk>.") == "[?] e poi [?].")
+        #expect(markingUnknownWords("Ciao a tutti.") == "Ciao a tutti.")
+    }
 }

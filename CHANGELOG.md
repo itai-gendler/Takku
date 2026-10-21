@@ -8,6 +8,7 @@ Takku was called Steno up to 0.2.1.
 
 - **Parakeet Ultra**: a new transcription model in *Settings → Transcription*. It is Parakeet v3 trained further by moondream: same 25 languages, same speed, fewer mistakes (on FLEURS, 24 languages, the error rate goes from 14.8% to 11.7% on average, and it is better than v3 in each of them). About 630 MB to download. Like v3, on short replies it can switch language.
 - **Fewer made-up sentences with Parakeet**: on faint audio Parakeet, Ultra especially, can write sentences in a language nobody spoke (Slovak, German, Russian…). They are now dropped when they are clearly not in one of the Meeting languages ticked in *Settings → Transcription*: with only Italian ticked, English sentences are dropped too. Meetings already transcribed keep what they had.
+- A word Parakeet could not recognise is written `[?]` in the Transcript, instead of an `<unk>` that Obsidian hid.
 - Speakers are told apart better on short turns, with FluidAudio 0.17.7.
 - WhisperKit 1.1.1: crash fixes and more robust model downloads.
 

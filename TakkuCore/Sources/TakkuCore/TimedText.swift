@@ -43,3 +43,9 @@ public func sentences(from tokens: [TimedText]) -> [TimedText] {
     close()
     return result
 }
+
+/// Parakeet writes `<unk>` for a word it could not recognise. Obsidian takes it for an HTML tag
+/// and hides it; `[?]` shows the reader and the Summary that a word is missing there.
+public func markingUnknownWords(_ text: String) -> String {
+    text.replacingOccurrences(of: "<unk>", with: "[?]")
+}

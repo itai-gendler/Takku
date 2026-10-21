@@ -98,9 +98,11 @@ actor LocalTranscriber {
             }
             if tokens.isEmpty {
                 let text = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
-                return text.isEmpty ? [] : [RecognizedText(start: 0, end: result.duration, text: text)]
+                return text.isEmpty ? [] : [RecognizedText(start: 0, end: result.duration, text: markingUnknownWords(text))]
             }
-            return sentences(from: tokens).map { RecognizedText(start: $0.start, end: $0.end, text: $0.text) }
+            return sentences(from: tokens).map {
+                RecognizedText(start: $0.start, end: $0.end, text: markingUnknownWords($0.text))
+            }
         }
         // Speech is already guaranteed by the ranges MeetingTranscription passes in: Whisper's
         // "no speech" threshold would only drop degraded audio (voices coming through a phone).
