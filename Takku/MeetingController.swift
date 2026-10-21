@@ -315,8 +315,8 @@ final class MeetingController {
     }
 
     /// From the menu: the Meeting in progress is for another calendar event, or for none. The note
-    /// takes its name and participants (see `Vault.switchEvent`); Obsidian is shown the renamed note
-    /// if it was showing it.
+    /// takes its name (see `Vault.renameForEvent`) and, a moment later, its participants; Obsidian
+    /// is shown the renamed note if it was showing it.
     func chooseCalendarEvent(_ event: CalendarEvent?) {
         guard event != calendarEvent, let currentTakkuID, let startedAt, let vault = Vault.configured,
               let noteURL = vault.findMeetingNote(takkuID: currentTakkuID, expected: currentNoteURL)
@@ -324,12 +324,24 @@ final class MeetingController {
         // Read before the rename: afterwards Obsidian may already show another note.
         let wasShownInObsidian = vault.isShownInObsidian(noteURL) ?? true
         do {
-            let url = try vault.switchEvent(of: noteURL, startedAt: startedAt, from: calendarEvent, to: event)
+            let url = try vault.renameForEvent(noteURL, startedAt: startedAt, from: calendarEvent, to: event)
             calendarEvent = event
             currentNoteURL = url
             processor.noteMoved(takkuID: currentTakkuID, to: url)
             if url != noteURL, wasShownInObsidian, AppSettings.opensNotes {
                 RenamedNoteFollower.follow(url, in: vault)
+            }
+            // Always after the same wait, renamed or not: two choices in a row write in their order.
+            Task { [weak self] in
+                try? await Task.sleep(for: Vault.settleAfterRename)
+                // Found again: another choice in the meantime may have renamed it once more.
+                guard let note = vault.findMeetingNote(takkuID: currentTakkuID, expected: url) else { return }
+                do {
+                    try vault.update(note) { $0.replaceParticipants(with: event?.participants ?? []) }
+                } catch {
+                    logger.error("Writing the event's participants failed: \(error, privacy: .public)")
+                    self?.recordingError = error.localizedDescription
+                }
             }
         } catch {
             logger.error("Switching the calendar event failed: \(error, privacy: .public)")

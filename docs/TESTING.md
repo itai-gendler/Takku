@@ -57,7 +57,8 @@ Before starting: Takku running from the menu bar (notebook icon), Vault and a Su
 
 - [x] **Default**: a Mac where *Editor* was never changed → Settings → *Obsidian Vault* → *Editor* says *Obsidian*, with no line below it; every note opens in Obsidian as before.
 - [x] **Zed**: *Editor* → Zed → a notification asks to turn on autosave in Zed; choosing Zed again shows none. *Start meeting* → the note opens in Zed at once; *Recent meetings* shows *Open Vault in Zed…* and it opens the vault as a project; the "Summary ready" click and *Open note* open the note in Zed.
-- [x] **Rename in Zed**: with the vault open in Zed and the note in front, let a Meeting finish → the Zed tab takes the new name; Takku does not bring Obsidian forward.
+- [x] **Rename in Zed**: with the vault open in Zed and the cursor in the note, let a Meeting finish → the Zed tab takes the new name and shows the Summary without leaving the note; Takku does not bring Obsidian forward.
+- [ ] **Another event in Zed**: with the cursor in the note, pick another event in *Calendar event* → the Zed tab takes its name and, a moment later, shows its participants.
 - [x] **Editor without folders**: *Editor* → TextEdit → *Recent meetings* shows *Show Vault in Finder…* and the Finder selects the vault.
 - [x] **Back to Obsidian**: *Editor* → Obsidian → no notification, *Show all in Obsidian…* is back.
 - [x] **Uninstalled editor**: `defaults write app.takku.takku editor com.example.missing` → *Editor* says *Obsidian* with the "no longer installed" line; notes open in Obsidian.
@@ -67,8 +68,8 @@ Before starting: Takku running from the menu bar (notebook icon), Vault and a Su
 - [x] **Call app hears you**: built-in microphone and speakers, Teams → *Settings → Devices → Make a test call* with Takku closed, then while Takku records, then after the stop with Takku still open → your voice plays back at the same volume all three times. *System Settings → Sound → Input level* moves while you talk during the recording.
 - [ ] **Echo on the speakers**: a call on the Mac speakers where you mostly listen and reply now and then → the Transcript has your replies as Me, and the others' sentences only once, as theirs; no short English or nonsense Me sentences ("Oh yeah", "The five.") while the others talk.
 - [ ] **Quiet reply**: say "sì" or "mm-hmm" softly while the others talk → it stays in the Transcript.
-
 - [ ] **Typing**: type on the keyboard for a minute without talking during a Meeting → no made-up Me sentences ("Grazie.") in the Transcript.
+
 ## Speakers
 
 - [ ] **First use**: move `~/Library/Application Support/Takku/Models/fluidaudio/speaker-diarization` to the Trash, record a call with two or three other people → the Transcript has *Speaker 1*, *Speaker 2*… instead of *Others*, with the turns matching who spoke; the models are back in that folder.

@@ -391,6 +391,7 @@ final class MeetingProcessor {
         if let log {
             await writeSummaryLog(log, summary: summary, noteURL: rename.url, template: template.name, record: record)
         }
+        if rename.url != noteURL { try? await Task.sleep(for: Vault.settleAfterRename) }
         try writeNote(rename.url, summary, speakerNames)
         if rename.follow { RenamedNoteFollower.follow(rename.url, in: vault) }
         if case .failed(let reason) = summary {

@@ -8,6 +8,11 @@ struct Vault {
     var meetingsFolder: URL { root.appending(path: "Meetings", directoryHint: .isDirectory) }
     var transcriptsFolder: URL { meetingsFolder.appending(path: "Transcripts", directoryHint: .isDirectory) }
 
+    /// Zed follows a renamed note but misses a write that arrives within about a second of the
+    /// rename, before or after it: its tab keeps showing the old content. A write to a note
+    /// that was just renamed waits this long (1 second was enough in a test).
+    static let settleAfterRename: Duration = .milliseconds(1500)
+
     static var configured: Vault? {
         AppSettings.vaultPath.map { Vault(root: URL(filePath: $0, directoryHint: .isDirectory)) }
     }
@@ -48,13 +53,12 @@ struct Vault {
         return url
     }
 
-    /// Points the Meeting note at another calendar event the user picked while recording, or at
-    /// none: its participants replace those in the note, and a note still named after the previous
-    /// event (or provisional) takes the new event's name (the provisional one without an event, so
-    /// Processing gives it a generated title). A note renamed or moved by the user keeps its name.
-    /// Returns where the note is now.
-    func switchEvent(of noteURL: URL, startedAt: Date, from previous: CalendarEvent?, to event: CalendarEvent?) throws -> URL {
-        try update(noteURL) { $0.replaceParticipants(with: event?.participants ?? []) }
+    /// Names the Meeting note after another calendar event the user picked while recording, or
+    /// after none: a note still named after the previous event (or provisional) takes the new
+    /// event's name (the provisional one without an event, so Processing gives it a generated
+    /// title). A note renamed or moved by the user keeps its name. Returns where the note is now.
+    /// The caller writes the event's participants a moment later (see `settleAfterRename`).
+    func renameForEvent(_ noteURL: URL, startedAt: Date, from previous: CalendarEvent?, to event: CalendarEvent?) throws -> URL {
         guard isInMeetingsFolder(noteURL), let newName = VaultNaming.renamedNoteName(
             current: noteURL.deletingPathExtension().lastPathComponent, startedAt: startedAt,
             title: event?.title ?? VaultNaming.defaultTitle, previousTitle: previous?.title ?? VaultNaming.defaultTitle
