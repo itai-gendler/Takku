@@ -68,6 +68,8 @@ public struct Transcript: Sendable {
     public static let markSymbol = "⭐"
 
     public let paragraphs: [Paragraph]
+    /// In time order. Only in the Transcript file: `markdown`, which the Summary reads, leaves them out.
+    public let screenshots: [Screenshot]
 
     /// `vocabulary`: the variants it knows are replaced by their term in the text of the paragraphs.
     public init(utterances: [Utterance], vocabulary: Vocabulary = .empty) {
@@ -98,15 +100,22 @@ public struct Transcript: Sendable {
         self.paragraphs = paragraphs.map {
             Paragraph(track: $0.track, start: $0.start, text: replaceVariants($0.text), speaker: $0.speaker)
         }
+        screenshots = []
     }
 
-    private init(paragraphs: [Paragraph]) {
+    private init(paragraphs: [Paragraph], screenshots: [Screenshot]) {
         self.paragraphs = paragraphs
+        self.screenshots = screenshots
     }
 
     /// The Speakers with the names the user gave them (by number); the others keep only the number.
     public func naming(_ names: [Int: String]) -> Transcript {
-        Transcript(paragraphs: paragraphs.map { $0.with(name: $0.speaker.flatMap { names[$0] }) })
+        Transcript(paragraphs: paragraphs.map { $0.with(name: $0.speaker.flatMap { names[$0] }) }, screenshots: screenshots)
+    }
+
+    /// The Transcript with these Screenshots, each under the paragraph it falls in (see `vaultFile`).
+    public func withScreenshots(_ screenshots: [Screenshot]) -> Transcript {
+        Transcript(paragraphs: paragraphs, screenshots: screenshots.sorted(by: Screenshot.inTimeOrder))
     }
 
     /// The paragraphs the Marks fall in, starred: for each Mark the last paragraph starting at or
@@ -117,7 +126,7 @@ public struct Transcript: Sendable {
         return Transcript(paragraphs: paragraphs.enumerated().map { index, paragraph in
             guard marked.contains(index), !paragraph.isMarked else { return paragraph }
             return paragraph.with(text: "\(Self.markSymbol) \(paragraph.text)", name: paragraph.name)
-        })
+        }, screenshots: screenshots)
     }
 
     /// Whether some Speaker has a name given by the user.
@@ -136,22 +145,46 @@ public struct Transcript: Sendable {
             .joined(separator: "\n")
     }
 
+    /// The Transcript file body: the paragraphs with each Screenshot on its own line under the one it
+    /// falls in (the last starting at or before it, like a Mark); those before any speech come first.
+    private var markdownWithScreenshots: String {
+        var blocks: [String] = []
+        var pending = screenshots[...]
+        func embedScreenshots(until end: TimeInterval) {
+            while let next = pending.first, next.time < end {
+                blocks.append("![[\(next.embed)]]\n")
+                pending = pending.dropFirst()
+            }
+        }
+        for (index, paragraph) in paragraphs.enumerated() {
+            if index == 0 { embedScreenshots(until: paragraph.start) }
+            blocks.append(Self.markdown(of: [paragraph]))
+            embedScreenshots(until: paragraphs.indices.contains(index + 1) ? paragraphs[index + 1].start : .infinity)
+        }
+        embedScreenshots(until: .infinity)
+        return blocks.joined(separator: "\n")
+    }
+
     /// Reads back the Transcript file written in the Vault (even if edited by hand): lines
-    /// that do not start with `**[time] Me/Speaker N/Others:**` stay in the paragraph they are in.
+    /// that do not start with `**[time] Me/Speaker N/Others:**` stay in the paragraph they are in,
+    /// except the image embeds, which are Screenshots and never text the model reads.
     public static func parse(vaultFile: String) -> (transcript: Transcript, language: String?) {
         let markdown = MarkdownLines(vaultFile)
         let language = markdown.value("language")
 
         var paragraphs: [Paragraph] = []
+        var screenshots: [Screenshot] = []
         for line in markdown.lines[markdown.bodyStart...] {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
             if let header = Header(trimmed) {
                 paragraphs.append(header.paragraph)
+            } else if let screenshot = Screenshot.embedded(in: trimmed, fallbackTime: paragraphs.last?.start ?? 0) {
+                screenshots.append(screenshot)
             } else if !trimmed.isEmpty, let last = paragraphs.popLast() {
                 paragraphs.append(last.with(text: last.text + " " + trimmed, name: last.name))
             }
         }
-        return (Transcript(paragraphs: paragraphs), language)
+        return (Transcript(paragraphs: paragraphs, screenshots: screenshots), language)
     }
 
     /// The Transcript file in the Vault with the Speakers' labels changed to the names the user
@@ -193,7 +226,7 @@ public struct Transcript: Sendable {
         var frontmatter = ["---", "takku_id: \(takkuID.uuidString)", "meeting: \(MeetingNote.wikiLink(meetingNoteName))"]
         if let language { frontmatter.append("language: \(language)") }
         frontmatter.append("---")
-        return frontmatter.joined(separator: "\n") + "\n" + markdown
+        return frontmatter.joined(separator: "\n") + "\n" + markdownWithScreenshots
     }
 
     /// Whisper describes non-speech in brackets (`[BLANK_AUDIO]`, `[Music]`)

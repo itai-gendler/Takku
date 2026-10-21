@@ -7,6 +7,7 @@ struct Vault {
 
     var meetingsFolder: URL { root.appending(path: "Meetings", directoryHint: .isDirectory) }
     var transcriptsFolder: URL { meetingsFolder.appending(path: "Transcripts", directoryHint: .isDirectory) }
+    var screenshotsFolder: URL { meetingsFolder.appending(path: "Screenshots", directoryHint: .isDirectory) }
 
     /// Zed follows a renamed note but misses a write that arrives within about a second of the
     /// rename, before or after it: its tab keeps showing the old content. A write to a note
@@ -104,6 +105,20 @@ struct Vault {
         let content = transcript.vaultFile(takkuID: takkuID, meetingNoteName: meetingNoteName, language: language)
         try content.write(to: url, atomically: true, encoding: .utf8)
         return url
+    }
+
+    /// Copies the Screenshots of a Recording folder into the Vault, only those not already there:
+    /// a Retry overwrites nothing. Takku never deletes them from the Vault.
+    func copyScreenshots(_ screenshots: [Screenshot], fromRecordingFolder folder: URL) throws {
+        guard !screenshots.isEmpty else { return }
+        try FileManager.default.createDirectory(at: screenshotsFolder, withIntermediateDirectories: true)
+        for screenshot in screenshots {
+            let destination = screenshotsFolder.appending(path: screenshot.embed)
+            guard !FileManager.default.fileExists(atPath: destination.path(percentEncoded: false)) else { continue }
+            try FileManager.default.copyItem(
+                at: folder.appending(path: Screenshot.folderName).appending(path: screenshot.embed), to: destination
+            )
+        }
     }
 
     /// The file is inside this Vault, symlinks resolved.

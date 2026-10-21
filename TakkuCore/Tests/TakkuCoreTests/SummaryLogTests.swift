@@ -39,7 +39,7 @@ struct SummaryLogTests {
         let log = SummaryLog.Recorder()
         let prompt = SummaryPrompt(template: template, personalNotes: "", transcript: transcript(paragraphs: 6), meetingLanguage: "it")
 
-        _ = try await Summarizer(client: client(stub), maxContextTokens: 32_000, log: log).summarize(prompt)
+        _ = try await Summarizer(client: client(stub), maxContextTokens: 32_000, log: log).summarize(prompt).text
 
         let calls = await log.calls
         #expect(calls.map(\.kind) == [.single])
@@ -55,7 +55,7 @@ struct SummaryLogTests {
         let log = SummaryLog.Recorder()
         let prompt = SummaryPrompt(template: template, personalNotes: "", transcript: transcript(paragraphs: 40), meetingLanguage: "it")
 
-        _ = try await Summarizer(client: client(stub), maxContextTokens: 8_192, log: log).summarize(prompt)
+        _ = try await Summarizer(client: client(stub), maxContextTokens: 8_192, log: log).summarize(prompt).text
 
         let kinds = await log.calls.map(\.kind)
         #expect(kinds.count == stub.requests.count)
@@ -100,7 +100,7 @@ struct SummaryLogTests {
         let stub = StubTransport { _ in "ok" }
         let prompt = SummaryPrompt(template: template, personalNotes: "", transcript: transcript(paragraphs: 6), meetingLanguage: "it")
 
-        let summary = try await Summarizer(client: client(stub), maxContextTokens: 32_000).summarize(prompt)
+        let summary = try await Summarizer(client: client(stub), maxContextTokens: 32_000).summarize(prompt).text
 
         #expect(summary == "ok")
         #expect(stub.requests.count == 1)

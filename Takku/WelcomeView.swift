@@ -22,6 +22,9 @@ struct WelcomeView: View {
     @AppStorage(AppSettings.vaultPathKey) private var vaultPath = ""
     @State private var microphoneAllowed = AudioPermissions.microphoneAllowed
     @State private var permissionsAsked = false
+    /// True only from the launch after it was allowed: macOS applies it when Takku is reopened.
+    @State private var screenRecordingAllowed = CGPreflightScreenCaptureAccess()
+    @State private var screenRecordingAsked = false
     @State private var isPreparingModel = false
     @State private var modelError: String?
 
@@ -134,6 +137,32 @@ struct WelcomeView: View {
                 }
             } header: {
                 Step(number: 4, title: "Summary (optional)", isDone: AppSettings.activeProviderProfile != nil)
+            }
+
+            // Last: the "Quit & Reopen" macOS offers would close this window, and with a Vault it does not come back.
+            Section {
+                Text("Only for screenshots during a meeting (⌃⌥⌘S). If macOS offers to reopen Takku, choose Later: the permission works from the next launch.")
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack {
+                    Button("Allow screen recording") {
+                        screenRecordingAllowed = ScreenshotTaker.isAllowed()
+                        screenRecordingAsked = true
+                    }
+                    .disabled(screenRecordingAsked || screenRecordingAllowed)
+                    Spacer()
+                }
+                if screenRecordingAsked && !screenRecordingAllowed {
+                    HStack {
+                        Text("Turn Takku on in Screen & System Audio Recording.")
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer()
+                        Button("Open System Settings") { controller.openScreenRecordingSettings() }
+                    }
+                }
+            } header: {
+                Step(number: 5, title: "Screenshots (optional)", isDone: screenRecordingAllowed)
             }
 
             Section("Optional") {

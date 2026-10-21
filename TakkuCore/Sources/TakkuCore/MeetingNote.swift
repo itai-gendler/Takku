@@ -27,6 +27,7 @@ public struct MeetingNote: Equatable, Sendable {
     public static let managedStart = "%% takku:start %%"
     public static let managedEnd = "%% takku:end %%"
     public static let personalNotesHeading = "## Personal notes"
+    static let screenshotsHeading = "### Screenshots"
 
     private enum Marker {
         case start, end
@@ -151,11 +152,11 @@ public struct MeetingNote: Equatable, Sendable {
     }
 
     /// Records the outcome of Processing: Takku's frontmatter keys (restoring `takku_id` if the
-    /// user deleted it), the Summary or the failure reason, and the Transcript link in the
-    /// managed section.
+    /// user deleted it), the Summary or the failure reason, the Screenshots and the Transcript link
+    /// in the managed section.
     public mutating func recordProcessing(
         takkuID: UUID, duration: TimeInterval, language: String?, transcriptName: String,
-        summary: SummaryOutcome
+        summary: SummaryOutcome, screenshots: [Screenshot] = []
     ) {
         var values: [(key: TakkuKey, value: String)] = [
             (.takkuID, takkuID.uuidString),
@@ -164,13 +165,15 @@ public struct MeetingNote: Equatable, Sendable {
         ]
         if let language { values.append((.language, language)) }
         setFrontmatter(values)
-        recordSummary(takkuID: takkuID, transcriptName: transcriptName, summary: summary)
+        recordSummary(takkuID: takkuID, transcriptName: transcriptName, summary: summary, screenshots: screenshots)
     }
 
     /// Records a new Summary of a Meeting already processed: Summary, Template and provider
     /// change, while duration, language and Transcript stay those of the Processing.
-    public mutating func recordRegeneration(takkuID: UUID, transcriptName: String, summary: SummaryOutcome) {
-        recordSummary(takkuID: takkuID, transcriptName: transcriptName, summary: summary)
+    public mutating func recordRegeneration(
+        takkuID: UUID, transcriptName: String, summary: SummaryOutcome, screenshots: [Screenshot] = []
+    ) {
+        recordSummary(takkuID: takkuID, transcriptName: transcriptName, summary: summary, screenshots: screenshots)
     }
 
     /// Records a failed Processing: the reason appears in the Managed section.
@@ -235,22 +238,29 @@ public struct MeetingNote: Equatable, Sendable {
         return line..<next
     }
 
-    private mutating func recordSummary(takkuID: UUID, transcriptName: String, summary: SummaryOutcome) {
+    private mutating func recordSummary(
+        takkuID: UUID, transcriptName: String, summary: SummaryOutcome, screenshots: [Screenshot]
+    ) {
         var values: [(key: TakkuKey, value: String)] = [(.takkuID, takkuID.uuidString)]
-        let transcriptLink = "Full transcript: [[\(transcriptName)]]"
-        let body: String
+        var blocks: [String] = []
         switch summary {
         case .written(let text, let template, let provider):
             values += [(.template, template), (.summaryProvider, provider)]
-            body = "\(text)\n\n\(transcriptLink)"
+            blocks.append(text)
         case .transcriptOnly:
             removeFrontmatter([.template, .summaryProvider])
-            body = transcriptLink
         case .failed(let reason):
-            body = "⚠️ Summary not generated: \(reason)\n\n\(transcriptLink)"
+            blocks.append("⚠️ Summary not generated: \(reason)")
         }
+        // Those the Summary did not place under one of its points.
+        let unplaced = screenshots.filter { !(blocks.first?.contains("![[\($0.fileName)") ?? false) }
+        if !unplaced.isEmpty {
+            blocks.append(Self.screenshotsHeading)
+            blocks += unplaced.map { "**[\(elapsedLabel($0.time))]** ![[\($0.embed)]]" }
+        }
+        blocks.append("Full transcript: [[\(transcriptName)]]")
         setFrontmatter(values)
-        replaceManagedSection(with: body)
+        replaceManagedSection(with: blocks.joined(separator: "\n\n"))
     }
 
     /// `47m`, or `1h 05m` past the hour. Never less than a minute.

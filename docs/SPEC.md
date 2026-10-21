@@ -183,12 +183,12 @@ One entry per line, as a Markdown list item:
 
 The global shortcut is fixed: ⌃⌥⌘R. If another app already uses it, the menu says so.
 
-The folders are fixed: `Meetings/`, `Meetings/Transcripts/`, `Meetings/_Templates/`; the Vocabulary is the fixed file `Meetings/_Vocabulary.md`. The Italian format of earlier development versions is not supported: those notes and Recordings were deleted.
+The folders are fixed: `Meetings/`, `Meetings/Transcripts/`, `Meetings/Screenshots/`, `Meetings/_Templates/`; the Vocabulary is the fixed file `Meetings/_Vocabulary.md`. The Italian format of earlier development versions is not supported: those notes and Recordings were deleted.
 
 ## Menu bar
 
 - **Idle**: Start meeting (shortcut) · Template ▸ (hidden when the Summary Profile is *Transcript*) · Summary Profile ▸ (*Transcript* or a Profile) · Recent meetings ▸ (Open note · Retry, then Show all in Obsidian…) · "Takku x.y.z is available…" when there is one · Set up Takku… (only without a Vault) · Report a problem… · Settings… · Quit
-- **Recording**: only a red dot in the bar (a star for a second after a Mark); in the menu "Recording · duration" · the silent Track warnings · Stop · Mark this moment (⌃⌥⌘M) · "Marked moments: N" · Template ▸ · Settings…
+- **Recording**: only a red dot in the bar (a star for a second after a Mark, a camera after a Screenshot); in the menu "Recording · duration" · the silent Track warnings · Stop · Mark this moment (⌃⌥⌘M) · Take a screenshot (⌃⌥⌘S) · "Marked moments: N" · "Screenshots: N" · Template ▸ · Settings…
 - **Processing**: hourglass in the bar; in the menu "Processing… (N more queued)"
 
 The interface is in English in the code and translated to Italian in `Takku/Localizable.xcstrings` and `Takku/InfoPlist.xcstrings`: macOS picks the language of the system. Error messages from `TakkuCore` are looked up in the app's catalog too. The structure Takku writes into the Vault (headings, markers, keys, labels, status lines such as "Summary not generated:") is always in English; the error detail after it follows the app language, like the menu.
@@ -198,7 +198,7 @@ The interface is in English in the code and translated to Italian in `Takku/Loca
 - `~/Library/Application Support/Takku/Recordings/<takku_id>/`: audio Segments, per-Segment transcription cache (model, language, whether it was reliable, Utterances, Me levels and their version), `speakers.json` (Others Segments diarized, Speaker turns, diarizer version), `recording.json` (start, end, Segments) and `processing.json` (status: recording, queued, processing, regenerating, completed, failed with reason; Template; Profile fixed at start; note path).
 - Persistent Processing queue, one Meeting at a time: at app restart queued or in-progress Processing resumes, oldest first. A Recording interrupted by a crash is rebuilt from the Segment lists and queued: only the Segment open at the crash is lost (an unclosed AAC file is unreadable).
 - An unreadable Segment is a warning ("Incomplete transcript"), not a failure: the Summary is generated with what there is.
-- At app launch and every day: deletion of the audio (and transcription caches and `speakers.json`) of Meetings older than 7 days that are processed or failed, never of those recording, queued, processing or regenerating. `recording.json` and `processing.json` stay: the Meeting stays among the recent ones and Retry makes the Summary again from the Transcript in the Vault. About 20 MB of audio per hour of Meeting (AAC mono 16 kHz, about 180 KB per minute for each Track with sound).
+- At app launch and every day: deletion of the audio (and transcription caches, `speakers.json` and the `screenshots/` folder, already copied into the Vault) of Meetings older than 7 days that are processed or failed, never of those recording, queued, processing or regenerating. `recording.json` and `processing.json` stay: the Meeting stays among the recent ones and Retry makes the Summary again from the Transcript in the Vault. About 20 MB of audio per hour of Meeting (AAC mono 16 kHz, about 180 KB per minute for each Track with sound).
 - **Summary log** ([ADR 0010](adr/0010-summary-log.md)): `~/.takku/summary-log/<date> <time> - <Template> - <model>.json`, one per Summary (Retry and Regeneration included, failed ones too), written when the Summary ends. `about`: an empty `comment` the user fills in by editing the file, `takku_id`, note name after the rename, Meeting start, Template, Profile name, model, *on this Mac* or *remote* (never the address), error. `calls`: every request in order (`single`, or `partial`/`group`/`merge`, then `title`) with the request and reply bodies as they went, HTTP status and seconds. Past 5 MB the oldest entries are deleted, the newest always stays. Separate from the audio's retention; never read by Takku, never in *Report a problem…*.
 - **Notifications**: "Summary ready" (click → note in Obsidian) or "Processing failed" with the reason.
 - **Global shortcut** ⌃⌥⌘R: starts or stops the Meeting from any app.
@@ -299,6 +299,43 @@ When the Summary cannot tell who a Speaker is, the user can say it:
 - **Summary**: rule "Paragraphs starting with ⭐ were marked as important by the user during the meeting: give them priority, like the topics of the personal notes." Stars the model copies into the Summary are removed with the cited times.
 - If ⌃⌥⌘M is taken by another app, the menu says so, like for ⌃⌥⌘R.
 
+### Screenshots
+
+The screen of a moment kept in the Meeting note, without the model ever seeing it ([ADR 0011](adr/0011-screenshots-never-reach-the-model.md)).
+
+- While recording, **⌃⌥⌘S** (from any app) or *Take a screenshot* in the menu takes a Screenshot and makes a Mark at the same moment: it counts in "Marked moments: N" and stars its paragraph. For a second the red dot becomes a camera; the menu shows "Screenshots: N". No shutter sound: it would be recorded in the Others Track.
+- **What**: the whole display showing the frontmost window (the main display if there is none), at its native resolution, as JPEG (quality 0.8): about 0.5–1 MB on a Retina display.
+- **Permission**: Screen Recording, asked in the welcome window as its last step, optional, and otherwise the first time ⌃⌥⌘S is pressed. Without it the Mark is made anyway and the menu shows "Screenshot not taken: allow Screen Recording in System Settings…", which opens them. macOS applies the permission when Takku is reopened: after the Meeting, not during it.
+- **On disk**: at once in `screenshots/` in the Recording folder, so they survive a crash, named `2026-10-04 1430 - 12m30s.jpg` (Meeting start, then the time from the start; `1h05m30s` past the hour; ` (2)` when two fall in the same second). At the end of Processing they are copied into `Meetings/Screenshots/` in the Vault, only those not already there: a Retry overwrites nothing. The name does not follow the note's: Obsidian finds `![[…]]` by name anywhere in the Vault, and the rename does not touch it.
+- **Transcript**: each Screenshot is an embed on its own line under the paragraph it falls in (the last one starting at or before it, like a Mark), several in time order; one taken before any speech goes before the first paragraph:
+
+  ```markdown
+  **[12:30] Speaker 2:** ⭐ So the deadline…
+
+  ![[2026-10-04 1430 - 12m31s.jpg]]
+  ```
+
+  When the Transcript is read back (Regeneration) a line that only embeds an image (`![[….jpg]]`, `.jpeg`, `.png`, `.webp`, `.gif`, also with `|size`) is a Screenshot, not text of the paragraph: it is never sent to the model.
+- **Summary**: each Screenshot goes under the first line of the Summary that cites the paragraph it falls in (its time, or a range with it), on its own line, 400 px wide (a click in Obsidian enlarges it) and indented so it stays inside that point. The model is not asked anything: Takku places them with the times the model cites for every point, before removing them (see *Cited times*). Several under the same point go in time order.
+
+  ```markdown
+  - The deadline moves to Friday
+    ![[2026-10-04 1430 - 12m31s.jpg|400]]
+  ```
+
+- **Meeting note**: those the Summary did not place (no point cites their paragraph, taken before any speech, Summary failed, *Transcript* as Profile) go in the Managed section after the Summary (or the warning) and before `Full transcript: [[…]]`:
+
+  ```markdown
+  ### Screenshots
+
+  **[12:31]** ![[2026-10-04 1430 - 12m31s.jpg]]
+  ```
+
+  The time comes from the file name; for an image named otherwise, from the paragraph it is under. When all are placed there is no heading.
+- **Regeneration**: the list comes from the embeds in the Transcript in the Vault, and the new Summary places them again. An embed the user removed from the Transcript disappears from the note too; a file deleted while its embed stays shows as a broken link. Takku never deletes Screenshots from the Vault.
+- The Summary model never receives them, nor their names, neither for the Summary nor for the title (asked on the Summary without them). The Hook does not change: the embeds in the note and in the Transcript name files in `Meetings/Screenshots/`, and the Hook runs in the Vault.
+- If ⌃⌥⌘S is taken by another app, the menu says so, like for ⌃⌥⌘R.
+
 ### Call start and end
 
 - Settings → *General* → *Suggest recording when a call starts* (on by default).
@@ -326,7 +363,7 @@ A Meeting can be taken elsewhere (Confluence, Notion, a git commit of the Vault)
 
 - **Distribution**: since 1.0.0 a zip on GitHub Releases and a Homebrew cask (`brew install --cask mameli/takku/takku`), signed with a Developer ID and notarized by `scripts/release.sh`, so Takku opens like any other app.
 - **Update check**: Settings → *General* → *Check for updates* (on by default). At launch and once a day Takku asks GitHub for the latest release (`api.github.com/repos/mameli/Takku/releases/latest`, no data about the user or the Meetings, only the request). If its version (`v0.1.6` → `0.1.6`) is newer than the running one, the menu shows "Takku 0.1.6 is available…", which opens the release page. The README lists this request in "Where your data is".
-- **Welcome window**: at launch while no Vault is chosen (in practice the first launch), and from *Set up Takku…* in the menu until then. Steps: Vault (`Vault.choose()`, shared with Settings) · microphone and system audio (the microphone through AVFoundation; the system audio has no request API, so a process tap runs for a second to make macOS ask, and whether it was allowed cannot be read) · transcription model (downloads and prepares the selected model, as the first Meeting would) · Summary (optional: opens Settings, links to the setup page) · Open at login and Calendar. *Done* closes it; nothing is saved besides the settings themselves.
+- **Welcome window**: at launch while no Vault is chosen (in practice the first launch), and from *Set up Takku…* in the menu until then. Steps: Vault (`Vault.choose()`, shared with Settings) · microphone and system audio (the microphone through AVFoundation; the system audio has no request API, so a process tap runs for a second to make macOS ask, and whether it was allowed cannot be read) · transcription model (downloads and prepares the selected model, as the first Meeting would) · Summary (optional: opens Settings, links to the setup page) · Screenshots (optional: asks for Screen Recording, which macOS applies at the next launch; last, because the *Quit & Reopen* macOS offers would close the window and, with a Vault chosen, it does not open again) · Open at login and Calendar. *Done* closes it; nothing is saved besides the settings themselves.
 - **Report a problem…** (menu, above *Settings…*): writes `Takku report <date>.txt` in the temporary folder (Desktop and Downloads would need a permission of their own) and shows it in Finder, then opens `github.com/mameli/Takku/issues/new` with the bug form's fields filled in through the query (`ProblemReport`). The file has the version and build, macOS, Mac model and memory, the install method (Homebrew if its Caskroom has Takku), the transcription model, the Summary as model plus *on this Mac* or *remote* (never the Profile's name or address, which can name a company) and `log show --last 3d` for the `app.takku.takku` subsystem. Nothing is sent by Takku.
 - **Recent meetings → Show all in Obsidian…**: opens Obsidian's search on the Vault with the Meeting notes (`[takku_id] -path:"Meetings/Transcripts"`).
 - **CI**: GitHub Actions runs `swift test` on `TakkuCore` and builds the app (signed ad hoc) at every push and pull request.

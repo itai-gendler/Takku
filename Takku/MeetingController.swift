@@ -32,11 +32,14 @@ final class MeetingController {
     private let callDetector = CallDetector()
     let updates = UpdateChecker()
     private var markHotKey: GlobalHotKey?
+    private var screenshotHotKey: GlobalHotKey?
     /// False if another app already uses ⌃⌥⌘R.
     var isHotKeyAvailable: Bool { hotKey?.isRegistered ?? false }
     /// False if another app already uses ⌃⌥⌘M.
     var isMarkHotKeyAvailable: Bool { markHotKey?.isRegistered ?? false }
-    /// The Recording folder of the Meeting in progress, where its Marks are saved.
+    /// False if another app already uses ⌃⌥⌘S.
+    var isScreenshotHotKeyAvailable: Bool { screenshotHotKey?.isRegistered ?? false }
+    /// The Recording folder of the Meeting in progress, where its Marks and Screenshots are saved.
     private var currentDirectory: URL?
     /// The Meeting note of the Meeting in progress, where Takku created it; `nil` if it was not created.
     private var currentNoteURL: URL?
@@ -49,6 +52,12 @@ final class MeetingController {
     private(set) var marks: [TimeInterval] = []
     /// For a second after a Mark the menu bar shows a star instead of the red dot.
     private(set) var isShowingMark = false
+    /// The Screenshots of the Meeting in progress.
+    private(set) var screenshotCount = 0
+    /// For a second after a Screenshot the menu bar shows a camera instead of the red dot.
+    private(set) var isShowingScreenshot = false
+    /// A Screenshot was not taken for lack of the Screen Recording permission.
+    private(set) var screenshotNotAllowed = false
     /// The transcription model while it is downloading or loading, as the menu shows it.
     private(set) var modelMenuTitle: String?
     /// The latest phase, also while a menu is open (the observed title waits for it to close).
@@ -77,6 +86,7 @@ final class MeetingController {
         Notifications.shared.configure()
         hotKey = GlobalHotKey(id: 1, keyCode: kVK_ANSI_R) { [weak self] in self?.toggle() }
         markHotKey = GlobalHotKey(id: 2, keyCode: kVK_ANSI_M) { [weak self] in self?.mark() }
+        screenshotHotKey = GlobalHotKey(id: 3, keyCode: kVK_ANSI_S) { [weak self] in self?.takeScreenshot() }
         Notifications.shared.onAction = { [weak self] action in
             guard let self else { return }
             // A button on an old notification does nothing when its action no longer makes sense.
@@ -183,19 +193,65 @@ final class MeetingController {
     /// ⌃⌥⌘M or the menu: marks the current moment of the Meeting in progress as important. Saved at
     /// once, so a crash does not lose it; it stars the Transcript paragraph it falls in.
     func mark() {
-        guard let startedAt, let currentDirectory else { return }
-        marks.append(Date().timeIntervalSince(startedAt))
+        guard let startedAt else { return }
+        saveMark(at: Date().timeIntervalSince(startedAt))
+        // No sound: the system audio capture would record it in the Others Track.
+        flash(\.isShowingMark)
+    }
+
+    private func saveMark(at time: TimeInterval) {
+        guard let currentDirectory else { return }
+        marks.append(time)
         do {
             try Marks.save(marks, inFolder: currentDirectory)
         } catch {
             logger.error("Mark not saved: \(error, privacy: .public)")
             recordingError = error.localizedDescription
         }
-        // No sound: the system audio capture would record it in the Others Track.
-        isShowingMark = true
+    }
+
+    /// Shows `indicator` in the menu bar for a second, in place of the red dot.
+    private func flash(_ indicator: ReferenceWritableKeyPath<MeetingController, Bool>) {
+        self[keyPath: indicator] = true
         Task { [weak self] in
             try? await Task.sleep(for: .seconds(1))
-            self?.isShowingMark = false
+            self?[keyPath: indicator] = false
+        }
+    }
+
+    /// ⌃⌥⌘S or the menu: a Screenshot of the Meeting in progress, saved at once in the Recording
+    /// folder, and a Mark at the same moment, made even when the Screenshot is not.
+    func takeScreenshot() {
+        guard let startedAt, let currentDirectory else { return }
+        let time = Date().timeIntervalSince(startedAt)
+        guard ScreenshotTaker.isAllowed() else {
+            screenshotNotAllowed = true
+            saveMark(at: time)
+            flash(\.isShowingMark)
+            return
+        }
+        Task {
+            do {
+                // Before the indicator changes: the menu bar is in the image.
+                let jpeg = try await ScreenshotTaker.jpeg()
+                let folder = currentDirectory.appending(path: Screenshot.folderName, directoryHint: .isDirectory)
+                try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+                let taken = (try? FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)) ?? []
+                let name = VaultNaming.available(
+                    Screenshot.baseName(startedAt: startedAt, time: time),
+                    taken: Set(taken.map { $0.deletingPathExtension().lastPathComponent })
+                )
+                try jpeg.write(to: folder.appending(path: "\(name).\(Screenshot.fileExtension)"), options: .atomic)
+                screenshotCount += 1
+                screenshotNotAllowed = false
+                flash(\.isShowingScreenshot)
+            } catch {
+                logger.error("Screenshot not taken: \(error, privacy: .public)")
+                recordingError = String(localized: "Screenshot not taken: \(error.localizedDescription)")
+                flash(\.isShowingMark)
+            }
+            // Not if the Meeting stopped meanwhile: `marks` would overwrite its marks.json.
+            if self.currentDirectory == currentDirectory { saveMark(at: time) }
         }
     }
 
@@ -239,6 +295,8 @@ final class MeetingController {
         currentTakkuID = started.meetingID
         currentDirectory = started.directory
         marks = []
+        screenshotCount = 0
+        screenshotNotAllowed = false
         currentNoteURL = createMeetingNote(takkuID: started.meetingID, startedAt: now)
         processor.meetingStarted(
             takkuID: started.meetingID,
@@ -289,6 +347,7 @@ final class MeetingController {
         calendarEvents = []
         calendarEvent = nil
         marks = []
+        screenshotCount = 0
         templateName = AppSettings.defaultTemplate
     }
 
@@ -425,6 +484,10 @@ final class MeetingController {
     /// would otherwise wait for it. The menu shows the progress as during a Meeting.
     func prepareTranscriptionModel() async throws {
         try await transcriber.prepare(.selected)
+    }
+
+    func openScreenRecordingSettings() {
+        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!)
     }
 
     func openMicrophoneSettings() {

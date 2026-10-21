@@ -7,7 +7,7 @@ import Foundation
 public struct SummaryPrompt: Sendable {
     private let template: Template
     private let personalNotes: String
-    private let transcript: Transcript
+    let transcript: Transcript
     private let meetingLanguage: String?
     private let vocabulary: Vocabulary
     private let userName: String?

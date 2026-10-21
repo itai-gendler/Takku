@@ -39,7 +39,9 @@ private struct MenuBarLabel: View {
     // While recording only the red dot: narrow, so it does not end up behind the notch.
     // The duration is in the menu.
     var body: some View {
-        if controller.isShowingMark {
+        if controller.isShowingScreenshot {
+            Image(nsImage: .screenshotIndicator)
+        } else if controller.isShowingMark {
             Image(nsImage: .markIndicator)
         } else if controller.isInProgress {
             Image(nsImage: .recordingIndicator)
@@ -67,11 +69,24 @@ private struct MeetingMenu: View {
             // The shortcut is global (GlobalHotKey): shown here as a reminder only, not as a menu key.
             Button("Stop meeting    ⌃⌥⌘R") { controller.stop() }
             Button("Mark this moment    ⌃⌥⌘M") { controller.mark() }
+            Button("Take a screenshot    ⌃⌥⌘S") {
+                // Once the menu has closed, so it is not in the image.
+                Task {
+                    try? await Task.sleep(for: .milliseconds(300))
+                    controller.takeScreenshot()
+                }
+            }
             if !controller.marks.isEmpty {
                 Text("Marked moments: \(controller.marks.count)")
             }
+            if controller.screenshotCount > 0 {
+                Text("Screenshots: \(controller.screenshotCount)")
+            }
             if !controller.isMarkHotKeyAvailable {
                 Text("⌃⌥⌘M is already used by another app")
+            }
+            if !controller.isScreenshotHotKeyAvailable {
+                Text("⌃⌥⌘S is already used by another app")
             }
             if !controller.calendarEvents.isEmpty {
                 CalendarEventMenu(controller: controller)
@@ -132,6 +147,12 @@ private struct MeetingMenu: View {
             Divider()
             Button("Microphone not authorized: open System Settings…") {
                 controller.openMicrophoneSettings()
+            }
+        }
+        if controller.screenshotNotAllowed {
+            Divider()
+            Button("Screenshot not taken: allow Screen Recording in System Settings…") {
+                controller.openScreenRecordingSettings()
             }
         }
 
@@ -241,6 +262,14 @@ private extension NSImage {
     /// Shown for a second after a Mark, in the same red as the recording dot.
     static let markIndicator: NSImage = {
         let image = NSImage(systemSymbolName: "star.circle.fill", accessibilityDescription: String(localized: "Moment marked"))!
+            .withSymbolConfiguration(.init(paletteColors: [.white, .systemRed]))!
+        image.isTemplate = false
+        return image
+    }()
+
+    /// Shown for a second after a Screenshot, like the star after a Mark.
+    static let screenshotIndicator: NSImage = {
+        let image = NSImage(systemSymbolName: "camera.circle.fill", accessibilityDescription: String(localized: "Screenshot taken"))!
             .withSymbolConfiguration(.init(paletteColors: [.white, .systemRed]))!
         image.isTemplate = false
         return image

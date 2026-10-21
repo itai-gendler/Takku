@@ -280,7 +280,8 @@ final class MeetingProcessor {
                 }
                 try vault.update(noteURL) {
                     $0.recordRegeneration(
-                        takkuID: takkuID, transcriptName: transcriptURL.deletingPathExtension().lastPathComponent, summary: summary
+                        takkuID: takkuID, transcriptName: transcriptURL.deletingPathExtension().lastPathComponent,
+                        summary: summary, screenshots: transcript.screenshots
                     )
                 }
             }
@@ -341,13 +342,17 @@ final class MeetingProcessor {
             return (noteURL, nil)
         }
 
+        let directory = Self.directory(for: record.takkuID)
+        let screenshots = Screenshot.load(fromFolder: directory)
+        try vault.copyScreenshots(screenshots, fromRecordingFolder: directory)
+        let transcript = finished.transcript.withScreenshots(screenshots)
         return try await writeSummary(
-            finished.transcript, language: finished.language, into: noteURL, record: record, vault: vault,
+            transcript, language: finished.language, into: noteURL, record: record, vault: vault,
             vocabulary: vocabulary
         ) { noteURL, summary, speakerNames in
             // Written after the rename: a new Transcript is named after the note's final name.
             let transcriptURL = try vault.writeTranscript(
-                finished.transcript.naming(speakerNames),
+                transcript.naming(speakerNames),
                 takkuID: record.takkuID,
                 meetingNoteName: noteURL.deletingPathExtension().lastPathComponent,
                 language: finished.language
@@ -359,7 +364,7 @@ final class MeetingProcessor {
                     duration: recording.endedAt.timeIntervalSince(recording.startedAt),
                     language: finished.language,
                     transcriptName: transcriptURL.deletingPathExtension().lastPathComponent,
-                    summary: summary
+                    summary: summary, screenshots: screenshots
                 )
             }
         }
@@ -454,14 +459,18 @@ final class MeetingProcessor {
                 template: template, personalNotes: personalNotes, transcript: transcript, meetingLanguage: language,
                 vocabulary: vocabulary, userName: NSFullUserName(), participants: participants
             )
-            let text = try await Summarizer(client: client, maxContextTokens: profile.maxContextTokens, log: log?.recorder)
+            let summary = try await Summarizer(client: client, maxContextTokens: profile.maxContextTokens, log: log?.recorder)
                 .summarize(prompt)
             logger.notice("Summary written in \(secondsSince(started), privacy: .public)")
             let titleClient = log.map { client.recording(into: $0.recorder, as: .title) } ?? client
+            // On the text alone: the Screenshots' names would reach the model.
             let reply = wantsTitle
-                ? try? await titleClient.complete(MeetingTitle.request(summary: text, language: prompt.summaryLanguage, vocabulary: vocabulary))
+                ? try? await titleClient.complete(MeetingTitle.request(summary: summary.text, language: prompt.summaryLanguage, vocabulary: vocabulary))
                 : nil
-            return (.written(text: text, template: template.name, provider: profile.displayName), reply.flatMap(MeetingTitle.clean), log)
+            return (
+                .written(text: summary.withScreenshots, template: template.name, provider: profile.displayName),
+                reply.flatMap(MeetingTitle.clean), log
+            )
         } catch {
             logger.error("Summary not generated after \(secondsSince(started), privacy: .public): \(error.localizedDescription, privacy: .public)")
             return (.failed(reason: error.localizedDescription), nil, log)

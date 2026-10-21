@@ -12,7 +12,7 @@ enum RecordingStorage {
     }
 
     /// Deletes the audio files of concluded Recordings older than `days` days (0: all of them),
-    /// with the transcription caches and the `transcript.md` copy. Meetings still pending are
+    /// with the transcription caches, the Screenshots (already in the Vault) and the `transcript.md` copy. Meetings still pending are
     /// kept. The manifests stay: the Meeting stays among the recent ones and Retry makes the
     /// Summary again from the Transcript in the Vault.
     static func deleteAudio(olderThanDays days: Int) {

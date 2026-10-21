@@ -2186,6 +2186,126 @@
           }
         }
       }
+    },
+    "Take a screenshot    ⌃⌥⌘S": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fai uno screenshot    ⌃⌥⌘S"
+          }
+        }
+      }
+    },
+    "Screenshots: %lld": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screenshot: %lld"
+          }
+        }
+      }
+    },
+    "⌃⌥⌘S is already used by another app": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⌃⌥⌘S è già usata da un'altra app"
+          }
+        }
+      }
+    },
+    "Screenshot not taken: allow Screen Recording in System Settings…": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screenshot non fatto: consenti la Registrazione schermo nelle Impostazioni di Sistema…"
+          }
+        }
+      }
+    },
+    "Screenshot not taken: %@": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screenshot non fatto: %@"
+          }
+        }
+      }
+    },
+    "Screenshot taken": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screenshot fatto"
+          }
+        }
+      }
+    },
+    "No display to take it from.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuno schermo da cui farlo."
+          }
+        }
+      }
+    },
+    "The image could not be saved as JPEG.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non è stato possibile salvare l'immagine in JPEG."
+          }
+        }
+      }
+    },
+    "Only for screenshots during a meeting (⌃⌥⌘S). If macOS offers to reopen Takku, choose Later: the permission works from the next launch.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serve solo per gli screenshot durante un meeting (⌃⌥⌘S). Se macOS propone di riaprire Takku, scegli Più tardi: il permesso vale dal prossimo avvio."
+          }
+        }
+      }
+    },
+    "Allow screen recording": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consenti registrazione schermo"
+          }
+        }
+      }
+    },
+    "Turn Takku on in Screen & System Audio Recording.": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attiva Takku in Registrazione schermo e audio di sistema."
+          }
+        }
+      }
+    },
+    "Screenshots (optional)": {
+      "localizations": {
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screenshot (facoltativo)"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

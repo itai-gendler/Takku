@@ -26,7 +26,7 @@ struct SummarizerTests {
         let stub = StubTransport { _ in "### Topics\nAll good." }
         let prompt = SummaryPrompt(template: template, personalNotes: "", transcript: transcript(paragraphs: 6), meetingLanguage: "it")
 
-        let summary = try await Summarizer(client: client(stub), maxContextTokens: 32_000).summarize(prompt)
+        let summary = try await Summarizer(client: client(stub), maxContextTokens: 32_000).summarize(prompt).text
 
         #expect(summary == "### Topics\nAll good.")
         #expect(stub.requests.count == 1)
@@ -49,7 +49,7 @@ struct SummarizerTests {
         let stub = StubTransport { _ in reply }
         let prompt = SummaryPrompt(template: template, personalNotes: "", transcript: transcript(paragraphs: 6), meetingLanguage: "it")
 
-        let summary = try await Summarizer(client: client(stub), maxContextTokens: 32_000).summarize(prompt)
+        let summary = try await Summarizer(client: client(stub), maxContextTokens: 32_000).summarize(prompt).text
 
         #expect(summary == """
             ### Topics
@@ -76,7 +76,7 @@ struct SummarizerTests {
         let stub = StubTransport { _ in reply }
         let prompt = SummaryPrompt(template: template, personalNotes: "", transcript: transcript(paragraphs: 6), meetingLanguage: "it")
 
-        let summary = try await Summarizer(client: client(stub), maxContextTokens: 32_000).summarize(prompt)
+        let summary = try await Summarizer(client: client(stub), maxContextTokens: 32_000).summarize(prompt).text
 
         #expect(summary == """
             ### Dishware
@@ -91,7 +91,7 @@ struct SummarizerTests {
         let stub = StubTransport { index in "- point \(index + 1) [00:20]" }
         let prompt = SummaryPrompt(template: template, personalNotes: "", transcript: transcript(paragraphs: 40), meetingLanguage: "it")
 
-        let summary = try await Summarizer(client: client(stub), maxContextTokens: 8_192).summarize(prompt)
+        let summary = try await Summarizer(client: client(stub), maxContextTokens: 8_192).summarize(prompt).text
 
         let merge = try #require(stub.message(stub.requests.count - 1, "user"))
         #expect(merge.contains("- point 1 [00:20]"))
@@ -107,7 +107,7 @@ struct SummarizerTests {
         let prompt = SummaryPrompt(template: template, personalNotes: "- budget!", transcript: full, meetingLanguage: "it")
 
         // Minimum context: after rules and reply about 4,000 tokens are left, less than the Transcript.
-        let summary = try await Summarizer(client: client(stub), maxContextTokens: 8_192).summarize(prompt)
+        let summary = try await Summarizer(client: client(stub), maxContextTokens: 8_192).summarize(prompt).text
 
         let partials = stub.requests.count - 1
         #expect(partials > 1)
@@ -133,7 +133,7 @@ struct SummarizerTests {
         let stub = StubTransport { index in "summary \(index + 1)" }
         let prompt = SummaryPrompt(template: template, personalNotes: "", transcript: transcript(paragraphs: 40), meetingLanguage: "it")
 
-        _ = try await Summarizer(client: client(stub), maxContextTokens: 8_192).summarize(prompt)
+        _ = try await Summarizer(client: client(stub), maxContextTokens: 8_192).summarize(prompt).text
 
         let partialRules = try #require(stub.message(0, "system"))
         #expect(partialRules.contains("otherwise keep \"Speaker N\""))
@@ -149,7 +149,7 @@ struct SummarizerTests {
         let stub = StubTransport { _ in longPartial }
         let prompt = SummaryPrompt(template: template, personalNotes: "", transcript: transcript(paragraphs: 120), meetingLanguage: "it")
 
-        _ = try await Summarizer(client: client(stub), maxContextTokens: 8_192).summarize(prompt)
+        _ = try await Summarizer(client: client(stub), maxContextTokens: 8_192).summarize(prompt).text
 
         // No request exceeds the context (estimate: 3 characters per token, 4,096 reserved for the reply).
         for index in stub.requests.indices {
@@ -170,7 +170,7 @@ struct SummarizerTests {
             vocabulary: Vocabulary(fileContent: "- Scaleway = scale uai | our EU cloud provider\n- Mameli")
         )
 
-        _ = try await Summarizer(client: client(stub), maxContextTokens: 8_192).summarize(prompt)
+        _ = try await Summarizer(client: client(stub), maxContextTokens: 8_192).summarize(prompt).text
 
         #expect(stub.requests.count > 3)
         for index in stub.requests.indices {
@@ -187,7 +187,7 @@ struct SummarizerTests {
         let stub = StubTransport { _ in "ok" }
         let prompt = SummaryPrompt(template: template, personalNotes: "", transcript: transcript(paragraphs: 12), meetingLanguage: "it")
 
-        _ = try await Summarizer(client: client(stub), maxContextTokens: 0).summarize(prompt)
+        _ = try await Summarizer(client: client(stub), maxContextTokens: 0).summarize(prompt).text
 
         // With the minimum (8,192 tokens) 12 paragraphs fit in a few blocks, not one per paragraph.
         #expect(stub.requests.count < 6)

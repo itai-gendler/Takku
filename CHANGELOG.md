@@ -4,6 +4,12 @@ What changes in each version of Takku, newest first. **Before you update** lists
 
 Takku was called Steno up to 0.2.1.
 
+## Unreleased
+
+- **Screenshots** ([#4](https://github.com/mameli/Takku/issues/4)): while recording, ⌃⌥⌘S (or *Take a screenshot* in the menu) takes a picture of the screen you are looking at and marks the moment, like ⌃⌥⌘M. The pictures go into `Meetings/Screenshots/` in your vault and show up in the Transcript, under what was being said, and in the Summary, under the point they belong to (those that belong to no point are listed after it). They never leave your Mac: the model writing the Summary does not see them.
+
+**Before you update**: the first ⌃⌥⌘S asks for the Screen Recording permission (new users get it as the last, optional step of the welcome window). macOS applies it once you reopen Takku, so give it after a meeting, not during one.
+
 ## 1.7.0 (2026-10-21)
 
 - **Parakeet Ultra**: a new transcription model in *Settings → Transcription*. It is Parakeet v3 trained further by moondream: same 25 languages, same speed, fewer mistakes (on FLEURS, 24 languages, the error rate goes from 14.8% to 11.7% on average, and it is better than v3 in each of them). About 630 MB to download. Like v3, on short replies it can switch language.

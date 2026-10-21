@@ -26,6 +26,10 @@ _Avoid_: chunk, block, piece
 A moment the user marks as important while recording (⌃⌥⌘M). It stars the Transcript paragraph it falls in, and the Summary gives that paragraph priority.
 _Avoid_: bookmark, highlight
 
+**Screenshot** (`Screenshot`):
+An image of the screen the user takes while recording (⌃⌥⌘S). Taking one also makes a Mark at the same moment. It is kept in the Vault and shown in the Transcript and the Meeting note; the Summary model never sees it.
+_Avoid_: capture (that is the audio), snapshot, image
+
 **Processing** (`Processing`):
 The phase after the stop in which Takku completes the Transcript and generates the Summary. It can fail and be retried.
 _Avoid_: post-processing, job

@@ -17,10 +17,24 @@ public struct Summarizer: Sendable {
         self.log = log
     }
 
+    /// The Summary, as the title is asked on and as the Meeting note shows it.
+    public struct Summary: Equatable, Sendable {
+        public let text: String
+        /// `text` with the Transcript's Screenshots under the points they belong to.
+        public let withScreenshots: String
+    }
+
     /// The model cites the Transcript times of every point; they are removed here, after the
-    /// merge has used those of the partial summaries, together with any star of a marked paragraph.
-    public func summarize(_ prompt: SummaryPrompt) async throws -> String {
-        SummaryPrompt.removingMarks(SummaryPrompt.removingCitedTimes(try await reply(prompt)))
+    /// merge has used those of the partial summaries and the Screenshots have been placed with them,
+    /// together with any star of a marked paragraph.
+    public func summarize(_ prompt: SummaryPrompt) async throws -> Summary {
+        let reply = try await reply(prompt)
+        let transcript = prompt.transcript
+        let clean = { SummaryPrompt.removingMarks(SummaryPrompt.removingCitedTimes($0)) }
+        return Summary(
+            text: clean(reply),
+            withScreenshots: clean(Screenshot.placing(transcript.screenshots, in: reply, paragraphs: transcript.paragraphs))
+        )
     }
 
     private func reply(_ prompt: SummaryPrompt) async throws -> String {
