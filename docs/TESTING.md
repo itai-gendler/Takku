@@ -15,6 +15,7 @@ Before starting: Takku running from the menu bar (notebook icon), Vault and a Su
 
 - [ ] **Parakeet**: with Models in the Trash, Settings → *Transcription* → *Download* on Parakeet v3 → percentage, then "Preparing…" while macOS compiles it, then *Use* and *Delete* appear. *Use* on Parakeet v3, record a Meeting with long and short replies → the Transcript is in the Meeting language, with sentences and times; note any reply in the wrong language.
 - [ ] **Parakeet Ultra**: the same steps with Parakeet Ultra; *Retry* on a Meeting transcribed with Parakeet v3 transcribes it again with Ultra. *Delete* on Ultra leaves Parakeet v3 downloaded.
+- [ ] **Parakeet, other languages**: with Parakeet Ultra and Italian and English ticked, record a Meeting where a video in German plays for a few seconds → its sentences are missing from the Transcript and the log says "sentences in another language dropped"; the Italian and English sentences around it are there.
 - [ ] **Transcription models**: Settings → *Transcription* → *Download* on Small → percentage, then *Use* and *Delete* appear; *Download* on the model in use → the menu shows the percentage, and nothing once it is done; *Use* → "In use" moves to Small; a Meeting is transcribed with Small; *Retry* on an older Meeting with Large v3 Turbo in use transcribes it again with Large. *Delete* on Small brings back *Download*.
 
 ## 1. Recording

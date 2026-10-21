@@ -281,9 +281,18 @@ actor MeetingTranscription {
         var utterances: [Utterance] = []
         for range in ranges {
             let offset = segment.start + Double(range.lowerBound) / sampleRate
-            let recognized = try await transcriber.transcribe(Array(samples[range]), language: language, model: model)
+            var recognized = try await transcriber.transcribe(Array(samples[range]), language: language, model: model)
             let speech = speechSeconds(in: samples, range: range, sampleRate: sampleRate)
             if isLikelyHallucination(recognized.map(\.text), speechDuration: speech) { continue }
+            if case .parakeet = model.engine {
+                // Parakeet is not held to a language: on faint audio it can write made-up
+                // sentences in another one.
+                let count = recognized.count
+                recognized.removeAll { isInAnotherLanguage($0.text, meetingLanguages: languages) }
+                if recognized.count < count {
+                    logger.notice("\(segment.fileName, privacy: .public): \(count - recognized.count) sentences in another language dropped")
+                }
+            }
             utterances += recognized.map {
                 Utterance(track: segment.track, start: offset + $0.start, end: offset + $0.end, text: $0.text)
             }
