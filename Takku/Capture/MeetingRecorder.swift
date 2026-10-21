@@ -70,8 +70,8 @@ final class MeetingRecorder {
         let others = writer(for: .others)
 
         do {
-            // System tap first, then the microphone: voice processing reconfigures
-            // the audio devices when it starts.
+            // System tap first, then the microphone: opening the microphone can reconfigure
+            // the audio devices (AirPods switch to call mode).
             try systemAudio.start { buffer, time in others.write(buffer, hostTime: time) }
             try microphone.start { buffer, time in me.write(buffer, hostTime: time) }
         } catch {

@@ -148,7 +148,8 @@ final class SegmentedTrackWriter: @unchecked Sendable {
                 throw CaptureError.unsupportedFormat(buffer.format.description)
             }
             if buffer.format.channelCount > 2 {
-                // Voice processing: channel 0 is the one already cleaned of echo.
+                // Multichannel input (audio interfaces, Recordings made with voice processing
+                // up to 1.5.1, whose channel 0 is the one cleaned of echo): the first channel.
                 newConverter.channelMap = [0]
             } else {
                 newConverter.downmix = true

@@ -10,8 +10,8 @@ private let minWords = 3
 private let minSharedFraction = 0.8
 
 /// Removes from the Me Track the others' voice leaked into the microphone (speakers without
-/// headphones, while echo cancellation is still adapting): a run of Me Utterances whose words
-/// almost all appear, in the same order, in what the others say at the same moment.
+/// headphones: Takku has no echo cancellation): a run of Me Utterances whose words almost all
+/// appear, in the same order, in what the others say at the same moment.
 public func removingEcho(_ utterances: [Utterance]) -> [Utterance] {
     let others = utterances.filter { $0.track == .others }.sorted { $0.start < $1.start }
     let me = utterances.indices.filter { utterances[$0].track == .me }.sorted { utterances[$0].start < utterances[$1].start }
@@ -43,6 +43,7 @@ public func removingEcho(_ utterances: [Utterance]) -> [Utterance] {
 /// the others' voice peaks around -40, loud enough for the speech ranges and turned into random
 /// words ("The five.", "Oh yeah") in any language. Measured on 13 real Meetings: 25 dB below the
 /// loudest Me sentence removes that residue and keeps the faintest real replies by over 10 dB.
+/// Takku used echo cancellation up to 1.5.1: a Retry of an older Recording still finds residue.
 private let maxBelowLoudest = 25.0
 
 /// Removes Me Utterances fainter than the loudest Me one by more than 25 dB: the others' voice

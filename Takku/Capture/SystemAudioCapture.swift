@@ -53,8 +53,8 @@ final class SystemAudioCapture {
         }
 
         // The tap only, without the speakers as main device: with voice processing
-        // active on the microphone, an aggregate that includes the output device
-        // stops receiving audio.
+        // active on the microphone (call apps use it), an aggregate that includes the
+        // output device stops receiving audio.
         let configuration: [String: Any] = [
             kAudioAggregateDeviceNameKey: "Takku",
             kAudioAggregateDeviceUIDKey: "app.takku.takku.aggregate.\(UUID().uuidString)",

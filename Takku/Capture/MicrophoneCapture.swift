@@ -3,11 +3,13 @@ import os
 
 private let logger = Logger(subsystem: "app.takku.takku", category: "capture")
 
-/// Captures the Me Track from the default microphone. The engine stops whenever the audio
-/// configuration changes: voice processing itself switches Bluetooth headsets (AirPods) to call
-/// mode right after the start, and the default microphone can change during a Meeting. The same
-/// engine is started again first (a new one would switch the headset back and forth forever);
-/// if no audio arrives from it, the microphone really changed and a new engine takes the new one.
+/// Captures the Me Track from the default microphone, without voice processing: macOS's echo
+/// cancellation reconfigures the built-in microphone and the other apps, the call included,
+/// get almost silence from it. The engine stops whenever the audio configuration changes:
+/// opening the microphone of Bluetooth headsets (AirPods) switches them to call mode right after
+/// the start, and the default microphone can change during a Meeting. The same engine is started
+/// again first (a new one would switch the headset back and forth forever); if no audio arrives
+/// from it, the microphone really changed and a new engine takes the new one.
 /// The writer fills the hole with silence, so the Track stays aligned.
 @MainActor
 final class MicrophoneCapture {
@@ -17,7 +19,8 @@ final class MicrophoneCapture {
     /// Without a buffer for this long after a restart, the engine is not hearing anything.
     private static let silentAfterRestart: Duration = .seconds(2)
 
-    private var engine = AVAudioEngine()
+    /// `nil` when stopped: a stopped engine still holds the microphone's audio unit.
+    private var engine: AVAudioEngine?
     /// Where buffers go while a Meeting is recorded; `nil` when stopped.
     private var onBuffer: AudioBufferHandler?
     private var configurationObserver: NSObjectProtocol?
@@ -38,14 +41,9 @@ final class MicrophoneCapture {
     /// A new engine every time: it takes the current default microphone and its format.
     private func startEngine() throws {
         guard let onBuffer else { return }
-        engine = AVAudioEngine()
+        let engine = AVAudioEngine()
+        self.engine = engine
         let input = engine.inputNode
-        // Echo cancellation: without it the microphone also records the others from the speakers.
-        try input.setVoiceProcessingEnabled(true)
-        // Keeps to a minimum the volume ducking of other apps, the call included.
-        input.voiceProcessingOtherAudioDuckingConfiguration = .init(enableAdvancedDucking: false, duckingLevel: .min)
-        // Do not touch `mainMixerNode`: connecting the output branch makes the start
-        // fail with voice processing active (error -10875).
         let format = input.outputFormat(forBus: 0)
         installTap(on: input, onBuffer: onBuffer)
         configurationObserver = NotificationCenter.default.addObserver(
@@ -71,12 +69,13 @@ final class MicrophoneCapture {
     private func stopEngine() {
         if let configurationObserver { NotificationCenter.default.removeObserver(configurationObserver) }
         configurationObserver = nil
-        engine.inputNode.removeTap(onBus: 0)
-        engine.stop()
+        engine?.inputNode.removeTap(onBus: 0)
+        engine?.stop()
+        engine = nil
     }
 
-    /// Several notifications can arrive for one change, and starting voice processing can post
-    /// one too: after a short wait the engine is started again only if it is really stopped.
+    /// Several notifications can arrive for one change: after a short wait the engine is
+    /// started again only if it is really stopped.
     private func devicesChanged() {
         Task {
             try? await Task.sleep(for: .milliseconds(500))
@@ -85,7 +84,7 @@ final class MicrophoneCapture {
     }
 
     private func restartIfStopped() {
-        guard let onBuffer, !engine.isRunning else { return }
+        guard let onBuffer, let engine, !engine.isRunning else { return }
         restarts = restarts.filter { $0.timeIntervalSinceNow > -60 }
         guard restarts.count < Self.maxRestartsPerMinute else {
             logger.error("Microphone changing too often: the Me Track stays silent until the stop")
@@ -126,7 +125,7 @@ final class MicrophoneCapture {
     #if DEBUG
     /// Tests: the microphone goes silent for 2 seconds as if the device had changed.
     func simulateDeviceChange() {
-        engine.stop()
+        engine?.stop()
         Task {
             try? await Task.sleep(for: .seconds(2))
             devicesChanged()
